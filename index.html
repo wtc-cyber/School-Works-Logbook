@@ -298,10 +298,11 @@ function checkRow(i, today){
   cb.onchange = () => toggleItem(i, cb);
   const overdue = i.Done !== 'Y' && i.DueDate && i.DueDate < today;
   const sub = [i.Owner, i.DueDate ? '期限 '+i.DueDate+(overdue ? '（已逾期）' : '') : '', i.Remarks].filter(Boolean).join(' · ');
-  const title = el('div',{style:'flex:1;cursor:pointer;'+(i.Done === 'Y' ? 'text-decoration:line-through;color:#6b7280' : ''), onclick:()=>editCheck(i)},
+  const title = el('div',{style:'flex:1;'+(i.Done === 'Y' ? 'text-decoration:line-through;color:#6b7280' : '')},
     i.Title, i.Required === 'Y' ? el('span',{class:'badge warn',style:'margin-left:6px'},'必須') : null,
     sub ? el('div',{class:'mut',style:overdue ? 'color:#b91c1c' : ''}, sub) : null);
-  return el('div',{style:'display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title);
+  const edit = el('button',{class:'btn sec',style:'flex:none;min-height:36px;min-width:0;padding:6px 12px;font-size:14px',onclick:()=>editCheck(i)},'✎ 修改');
+  return el('div',{style:'display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title, edit);
 }
 async function toggleItem(i, cb){
   const done = cb.checked; cb.disabled = true;
