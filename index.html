@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School Works Logbook</title>
+<style>
+:root{--pri:#1e40af;--bg:#f3f4f6;--bd:#e5e7eb;--mut:#6b7280;--err:#b91c1c;--ok:#15803d}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:var(--bg);color:#111827;padding-bottom:76px}
+header{background:var(--pri);color:#fff;padding:12px 16px;font-weight:600;position:sticky;top:0;z-index:5}
+header small{font-weight:400;opacity:.8;margin-left:6px}
+main{max-width:720px;margin:0 auto;padding:12px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bd);display:none;z-index:5}
+nav button{flex:1;padding:14px 4px;border:0;background:none;font-size:15px;color:var(--mut)}
+nav button.on{color:var(--pri);font-weight:700;border-top:3px solid var(--pri)}
+.card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:12px;margin:8px 0}
+.click{cursor:pointer}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.row>*{flex:1;min-width:120px}
+.mut{color:var(--mut);font-size:13px}
+.badge{display:inline-block;background:#dbeafe;color:#1e3a8a;border-radius:10px;padding:2px 8px;font-size:12px;margin-right:4px}
+.badge.warn{background:#fef3c7;color:#92400e}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
+input[type=checkbox]{width:auto;transform:scale(1.4);margin:6px}
+textarea{min-height:90px}
+label{display:block;margin:12px 0 2px;font-size:14px;font-weight:600}
+.req{color:var(--err)}
+.btn{padding:11px 16px;border:0;border-radius:6px;background:var(--pri);color:#fff;min-height:44px;cursor:pointer}
+.btn.sec{background:#e5e7eb;color:#111827}
+.btn.dan{background:var(--err)}
+.btn:disabled{opacity:.5}
+#toast{position:fixed;left:12px;right:12px;bottom:84px;padding:12px;border-radius:8px;color:#fff;display:none;z-index:30}
+#toast.ok{background:var(--ok)}#toast.err{background:var(--err)}#toast.info{background:#374151}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20;overflow:auto}
+#modal .box{background:#fff;max-width:640px;margin:0 auto;min-height:100%;padding:16px}
+#formErr{color:var(--err);margin:10px 0;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<header>School Works Logbook<small>V0.1b-1</small></header>
+<main id="main"></main>
+<nav id="nav">
+  <button data-v="projects">工程</button>
+  <button data-v="logbook">紀錄</button>
+  <button data-v="settings">設定</button>
+</nav>
+<div id="toast"></div>
+<div id="modal"></div>
+
+<script>
+// ★ 填入 GAS /exec 網址（與之前相同即可）
+const API_URL = 'https://script.google.com/macros/s/AKfycby05A2qYvYOsqPfFDDarLreBsoBtskympLc9tjwaF2LbH9as0SwC10KEzVoAt8j5BkX2w/exec';
+
+const $ = s => document.querySelector(s);
+const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], onlyOpen:false,
+            pf:{q:'',status:''}, lf:{q:'',type:'',project:''} };
+
+/* ---------- 欄位定義（前端表單用；驗證以後端為準）---------- */
+const PF = [
+ {n:'Name',l:'工程名稱',t:'text',req:1},
+ {n:'Status',l:'工程狀態',t:'select',en:'ProjectStatus',req:1,def:'尚未開始'},
+ {n:'Location',l:'工程地點',t:'text'},
+ {n:'Category',l:'工程類別',t:'text'},
+ {n:'Scope',l:'工程範圍',t:'area'},
+ {n:'Contractor',l:'承辦商',t:'text'},
+ {n:'Owner',l:'工程負責人',t:'text'},
+ {n:'StartDate',l:'開始日期',t:'date'},
+ {n:'PlannedEnd',l:'預計完成日期',t:'date'},
+ {n:'ActualEnd',l:'實際完成日期',t:'date'},
+ {n:'Budget',l:'預算（選填）',t:'number'},
+ {n:'Remarks',l:'備註',t:'area'}];
+const LF = [
+ {n:'ProjectID',l:'工程',t:'project',req:1},
+ {n:'EventAt',l:'事件日期及時間',t:'datetime',req:1},
+ {n:'Type',l:'紀錄類別',t:'select',en:'LogType',req:1},
+ {n:'Title',l:'標題',t:'text',req:1},
+ {n:'Content',l:'詳細內容',t:'area'},
+ {n:'Parties',l:'相關人士或承辦商',t:'text'},
+ {n:'Source',l:'事件來源',t:'text'},
+ {n:'Result',l:'處理結果',t:'area'},
+ {n:'NeedFollowUp',l:'需要跟進',t:'check'},
+ {n:'AttachmentLinks',l:'附件連結（每行一個）',t:'area'}];
+const CATS = ['A. 場地及時間安排','B. 清拆及前期準備','C. 水電煤及其他設施','D. 家俬及設備','E. 高空工作及特殊施工','F. 完工及驗收'];
+const CF = [
+ {n:'Title',l:'項目',t:'text',req:1},
+ {n:'Category',l:'類別',t:'text',list:CATS},
+ {n:'Required',l:'必須完成',t:'check'},
+ {n:'Owner',l:'負責人',t:'text'},
+ {n:'DueDate',l:'期限',t:'date'},
+ {n:'Remarks',l:'備註',t:'area'}];
+
+/* ---------- 小工具 ---------- */
+function el(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const k in (attrs||{})) {
+    const v = attrs[k];
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e[k] = v;
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => { if (c == null || c === false) return; e.append(c.nodeType ? c : document.createTextNode(String(c))); });
+  return e;
+}
+function nowLocal(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+}
+function toast(msg, cls, ms){
+  const t = $('#toast'); clearTimeout(toast.t);
+  if (!msg) { t.style.display = 'none'; return; }
+  t.textContent = msg; t.className = cls || 'info'; t.style.display = 'block';
+  if (ms !== 0) toast.t = setTimeout(() => t.style.display = 'none', ms || 2500);
+}
+const getPw = () => sessionStorage.getItem('pw') || localStorage.getItem('pw') || '';
+const clearPw = () => { sessionStorage.removeItem('pw'); localStorage.removeItem('pw'); };
+
+/* ---------- API ---------- */
+async function api(action, payload){
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 30000);
+  try {
+    const res = await fetch(API_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(Object.assign({action, password:getPw()}, payload||{})),
+      redirect:'follow', signal:ctl.signal });
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const d = await res.json();
+    if (!d.ok) throw new Error(d.error || '未知錯誤');
+    return d.data;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('連線逾時，請檢查網絡後重試');
+    if (e instanceof TypeError) throw new Error('網絡錯誤，無法連線伺服器');
+    throw e;
+  } finally { clearTimeout(timer); }
+}
+
+async function loadData(){
+  const [p, l, c] = await Promise.all([api('list',{table:'Projects'}), api('list',{table:'Logbook'}), api('list',{table:'Checklist'})]);
+  const ids = new Set(p.map(x => x.ProjectID));
+  S.projects = p; S.logs = l.filter(x => ids.has(x.ProjectID)); S.checklist = c.filter(x => ids.has(x.ProjectID));
+}
+async function refresh(okMsg){
+  toast('載入中…','info',0);
+  try { await loadData(); toast(okMsg||'', 'ok'); render(); }
+  catch(e){ toast('載入失敗：'+e.message,'err',6000); }
+}
+
+/* ---------- 表單 ---------- */
+function closeModal(){ const m=$('#modal'); m.style.display='none'; m.replaceChildren(); document.body.style.overflow=''; }
+function openForm(o){
+  const rid = crypto.randomUUID(), inp = {}, err = el('div',{id:'formErr'});
+  const box = el('div',{class:'box'}, el('h3',{},o.title));
+  o.fields.forEach(f => {
+    const raw = o.values && o.values[f.n]; const val = (raw != null && raw !== '') ? raw : (f.def || '');
+    let c;
+    if (f.t === 'area') c = el('textarea');
+    else if (f.t === 'check') c = el('input',{type:'checkbox'});
+    else if (f.t === 'select' || f.t === 'project') {
+      c = el('select');
+      if (f.t === 'project' || !f.req) c.append(el('option',{value:''}, f.t==='project'?'請選擇工程':'—'));
+      const opts = f.t === 'project' ? S.projects.map(p => [p.ProjectID,p.Name]) : S.meta.enums[f.en].map(x => [x,x]);
+      opts.forEach(([v,l]) => c.append(el('option',{value:v},l)));
+    } else {
+      c = el('input',{type: f.t==='datetime' ? 'datetime-local' : f.t});
+      if (f.t === 'number') { c.step='0.01'; c.min='0'; c.inputMode='decimal'; }
+      if (f.list) {
+        const id = 'dl_'+f.n; c.setAttribute('list', id);
+        box.append(el('datalist',{id:id}, f.list.map(x => el('option',{value:x}))));
+      }
+    }
+    if (f.t === 'check') c.checked = (val === 'Y'); else c.value = val;
+    inp[f.n] = c;
+    box.append(el('label',{}, f.l, f.req ? el('span',{class:'req'},' *') : null), c);
+  });
+  const btn = el('button',{class:'btn'}, o.saveLabel||'儲存');
+  btn.onclick = async () => {
+    err.textContent = '';
+    const data = {};
+    o.fields.forEach(f => { const c = inp[f.n]; data[f.n] = f.t==='check' ? (c.checked?'Y':'N') : c.value.trim(); });
+    for (const f of o.fields) if (f.req && !data[f.n]) { err.textContent = f.l+' 必填'; return; }
+    btn.disabled = true; btn.textContent = '儲存中…';
+    let ok = false;
+    try { await o.onSave(data, rid); ok = true; }
+    catch(e){ err.textContent = '儲存失敗：'+e.message+'\n（輸入內容已保留，可再按儲存）'; }
+    btn.disabled = false; btn.textContent = o.saveLabel||'儲存';
+    if (ok) { closeModal(); refresh('已儲存'); }
+  };
+  const row = el('div',{class:'row'}, btn, el('button',{class:'btn sec',onclick:closeModal},'取消'));
+  if (o.onDelete) row.append(el('button',{class:'btn dan',onclick:async()=>{
+    if (!confirm('確定刪除此項目？')) return;
+    try { await o.onDelete(); closeModal(); refresh('已刪除'); }
+    catch(e){ err.textContent = '刪除失敗：'+e.message; }
+  }},'刪除'));
+  box.append(err, row);
+  const m = $('#modal'); m.replaceChildren(box); m.style.display='block'; m.scrollTop = 0; document.body.style.overflow='hidden';
+}
+
+/* ---------- 工程 ---------- */
+function newProject(){
+  openForm({title:'新增工程', fields:PF, values:{}, onSave:(d,rid)=>api('create',{table:'Projects',data:d,requestId:rid})});
+}
+function editProject(p){
+  openForm({title:'修改工程', fields:PF, values:p, onSave:d=>api('update',{table:'Projects',id:p.ProjectID,data:d,expectedUpdatedAt:p.UpdatedAt})});
+}
+async function delProject(p){
+  const typed = prompt('「'+p.Name+'」會被標記為已刪除（相關紀錄不會被刪除，可於 Google Sheets 將 IsDeleted 改回 N 還原）。\n請輸入工程名稱確認：');
+  if (typed === null) return;
+  try {
+    await api('delete',{table:'Projects',id:p.ProjectID,confirmName:typed});
+    S.view='projects'; S.projectId=null; await refresh('已刪除');
+  } catch(e){ toast('刪除失敗：'+e.message,'err',6000); }
+}
+function projectCard(p){
+  const n = S.logs.filter(l => l.ProjectID === p.ProjectID).length;
+  const ci = S.checklist.filter(i => i.ProjectID === p.ProjectID);
+  const cd = ci.filter(i => i.Done === 'Y').length;
+  return el('div',{class:'card click',onclick:()=>{S.view='project';S.projectId=p.ProjectID;render();}},
+    el('div',{}, el('strong',{},p.Name)),
+    el('div',{}, el('span',{class:'badge'},p.Status), p.PlannedEnd ? el('span',{class:'mut'},'預計完成 '+p.PlannedEnd) : null),
+    el('div',{class:'mut'}, [p.Location,p.Contractor].filter(Boolean).join(' · ')),
+    el('div',{class:'mut'}, '紀錄 '+n+' 條'+(ci.length ? ' · 清單 '+cd+'/'+ci.length : '')));
+}
+function projectsView(){
+  const wrap = el('div'), list = el('div');
+  const q = el('input',{type:'search',placeholder:'搜尋工程名稱、地點、承辦商…'}); q.value = S.pf.q;
+  const st = el('select',{}, el('option',{value:''},'全部狀態'), S.meta.enums.ProjectStatus.map(s => el('option',{value:s},s)));
+  st.value = S.pf.status;
+  function draw(){
+    const k = S.pf.q.trim().toLowerCase();
+    const rows = S.projects.filter(p => (!S.pf.status || p.Status===S.pf.status) &&
+      (!k || [p.Name,p.Location,p.Contractor,p.Category,p.Scope,p.Owner].join(' ').toLowerCase().includes(k)))
+      .sort((a,b) => b.UpdatedAt.localeCompare(a.UpdatedAt));
+    list.replaceChildren(...(rows.length ? rows.map(projectCard) : [el('p',{class:'mut'},'沒有符合的工程')]));
+  }
+  q.oninput = () => { S.pf.q = q.value; draw(); };
+  st.onchange = () => { S.pf.status = st.value; draw(); };
+  wrap.append(el('div',{class:'row'}, el('button',{class:'btn',onclick:newProject},'＋ 新增工程')),
+              el('div',{class:'row'}, q, st), list);
+  draw(); return wrap;
+}
+function projectView(){
+  const p = S.projects.find(x => x.ProjectID === S.projectId);
+  if (!p) { S.view='projects'; return projectsView(); }
+  const info = el('div',{class:'card'}, el('h3',{style:'margin:0 0 8px'},p.Name));
+  PF.forEach(f => {
+    if (f.n === 'Name' || !p[f.n]) return;
+    const v = f.n==='Budget' ? 'HK$ '+Number(p[f.n]).toLocaleString() : p[f.n];
+    info.append(el('div',{style:'margin:4px 0;white-space:pre-wrap'}, el('span',{class:'mut'},f.l+'：'), v));
+  });
+  info.append(el('div',{class:'mut'},'ID：'+p.ProjectID+' · 建立 '+p.CreatedAt.slice(0,10)+' · 修改 '+p.UpdatedAt.slice(0,16).replace('T',' ')));
+  const logs = S.logs.filter(l => l.ProjectID === p.ProjectID).sort((a,b) => b.EventAt.localeCompare(a.EventAt));
+  return el('div',{},
+    el('button',{class:'btn sec',onclick:()=>{S.view='projects';render();}},'← 返回'),
+    info,
+    el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>editProject(p)},'修改'),
+                            el('button',{class:'btn dan',onclick:()=>delProject(p)},'刪除')),
+    checklistSection(p),
+    el('h3',{},'工程紀錄（'+logs.length+'）'),
+    el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>newLog(p.ProjectID)},'＋ 新增紀錄')),
+    logs.length ? logs.map(l => logCard(l,false)) : el('p',{class:'mut'},'暫時沒有紀錄'));
+}
+
+/* ---------- Checklist ---------- */
+function checklistSection(p){
+  const items = S.checklist.filter(i => i.ProjectID === p.ProjectID);
+  const done = items.filter(i => i.Done === 'Y').length;
+  const req = items.filter(i => i.Required === 'Y'), reqDone = req.filter(i => i.Done === 'Y').length;
+  const today = nowLocal().slice(0,10);
+  const wrap = el('div',{}, el('h3',{},'開工前 Checklist'));
+  wrap.append(el('div',{class:'mut'}, items.length
+    ? '已完成 '+done+' / '+items.length+(req.length ? ' · 必須項目 '+reqDone+' / '+req.length : '')
+    : '尚未建立清單'));
+  const bar = el('div',{class:'row'});
+  if (!items.length) bar.append(el('button',{class:'btn',onclick:()=>seedCheck(p)},'套用預設清單'));
+  bar.append(el('button',{class:'btn sec',onclick:()=>newCheck(p.ProjectID)},'＋ 新增項目'));
+  wrap.append(bar);
+  if (items.length) {
+    const only = el('input',{type:'checkbox'}); only.checked = S.onlyOpen;
+    only.onchange = () => { S.onlyOpen = only.checked; render(); };
+    wrap.append(el('label',{style:'font-weight:400'}, only, ' 只顯示未完成'));
+    const groups = {};
+    items.forEach(i => {
+      if (S.onlyOpen && i.Done === 'Y') return;
+      const k = i.Category || '未分類';
+      (groups[k] = groups[k] || []).push(i);
+    });
+    Object.keys(groups).sort().forEach(cat => {
+      const card = el('div',{class:'card'}, el('strong',{},cat));
+      groups[cat].sort((a,b) => a.ItemID.localeCompare(b.ItemID)).forEach(i => card.append(checkRow(i,today)));
+      wrap.append(card);
+    });
+  }
+  return wrap;
+}
+function checkRow(i, today){
+  const cb = el('input',{type:'checkbox'}); cb.checked = (i.Done === 'Y');
+  cb.onchange = () => toggleItem(i, cb);
+  const overdue = i.Done !== 'Y' && i.DueDate && i.DueDate < today;
+  const sub = [i.Owner, i.DueDate ? '期限 '+i.DueDate+(overdue ? '（已逾期）' : '') : '', i.Remarks].filter(Boolean).join(' · ');
+  const title = el('div',{style:'flex:1;cursor:pointer;'+(i.Done === 'Y' ? 'text-decoration:line-through;color:#6b7280' : ''), onclick:()=>editCheck(i)},
+    i.Title, i.Required === 'Y' ? el('span',{class:'badge warn',style:'margin-left:6px'},'必須') : null,
+    sub ? el('div',{class:'mut',style:overdue ? 'color:#b91c1c' : ''}, sub) : null);
+  return el('div',{style:'display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title);
+}
+async function toggleItem(i, cb){
+  const done = cb.checked; cb.disabled = true;
+  try {
+    const r = await api('update',{table:'Checklist',id:i.ItemID,
+      data:{Done:done?'Y':'N', DoneDate:done?nowLocal().slice(0,10):''}, expectedUpdatedAt:i.UpdatedAt});
+    const idx = S.checklist.findIndex(x => x.ItemID === i.ItemID);
+    if (idx >= 0) S.checklist[idx] = r.record;
+    render();
+  } catch(e){ cb.checked = !done; cb.disabled = false; toast('儲存失敗：'+e.message,'err',6000); }
+}
+function newCheck(pid){
+  openForm({title:'新增檢查項目', fields:CF, values:{},
+    onSave:(d,rid)=>api('create',{table:'Checklist',data:Object.assign({ProjectID:pid,Done:'N'},d),requestId:rid})});
+}
+function editCheck(i){
+  openForm({title:'修改檢查項目', fields:CF, values:i,
+    onSave:d=>api('update',{table:'Checklist',id:i.ItemID,data:d,expectedUpdatedAt:i.UpdatedAt}),
+    onDelete:()=>api('delete',{table:'Checklist',id:i.ItemID})});
+}
+async function seedCheck(p){
+  if (!confirm('為「'+p.Name+'」套用預設清單（24 項，全部為非必須，之後可修改或刪除）？')) return;
+  toast('建立中…','info',0);
+  try {
+    const r = await api('seedChecklist',{projectId:p.ProjectID, requestId:crypto.randomUUID()});
+    await refresh('已加入 '+r.added+' 項');
+  } catch(e){ toast('建立失敗：'+e.message,'err',6000); }
+}
+
+/* ---------- Logbook ---------- */
+function newLog(pid){
+  if (!S.projects.length) return toast('請先建立工程','err');
+  openForm({title:'新增工程紀錄', fields:LF, values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'},
+            onSave:(d,rid)=>api('create',{table:'Logbook',data:d,requestId:rid})});
+}
+function editLog(l){
+  openForm({title:'修改紀錄', fields:LF, values:l, onSave:d=>api('update',{table:'Logbook',id:l.LogID,data:d,expectedUpdatedAt:l.UpdatedAt})});
+}
+function logCard(l, showProj){
+  const proj = S.projects.find(p => p.ProjectID === l.ProjectID);
+  const det = el('div',{style:'display:none;margin-top:8px;border-top:1px solid #eee;padding-top:8px'});
+  det.onclick = ev => ev.stopPropagation();
+  if (l.Content) det.append(el('div',{style:'white-space:pre-wrap;margin:6px 0'},l.Content));
+  [['相關人士',l.Parties],['來源',l.Source],['處理結果',l.Result]].forEach(([k,v]) => {
+    if (v) det.append(el('div',{class:'mut',style:'white-space:pre-wrap'},k+'：'+v));
+  });
+  (l.AttachmentLinks||'').split('\n').map(s => s.trim()).filter(Boolean).forEach(s => {
+    det.append(/^https?:\/\//i.test(s) ? el('div',{}, el('a',{href:s,target:'_blank',rel:'noopener noreferrer'},s)) : el('div',{class:'mut'},s));
+  });
+  det.append(el('div',{class:'mut'},'ID：'+l.LogID+' · 建立 '+l.CreatedAt.slice(0,16).replace('T',' ')+' · 修改 '+l.UpdatedAt.slice(0,16).replace('T',' ')),
+             el('div',{class:'row'}, el('button',{class:'btn sec',onclick:()=>editLog(l)},'修改')));
+  return el('div',{class:'card click',onclick:()=>{det.style.display = det.style.display==='none'?'block':'none';}},
+    el('div',{class:'mut'}, l.EventAt.replace('T',' ')),
+    el('div',{}, el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, el('strong',{},l.Title)),
+    showProj && proj ? el('div',{class:'mut'},proj.Name) : null, det);
+}
+function logbookView(){
+  const wrap = el('div'), list = el('div');
+  const q = el('input',{type:'search',placeholder:'搜尋標題、內容、人士…'}); q.value = S.lf.q;
+  const ty = el('select',{}, el('option',{value:''},'全部類別'), S.meta.enums.LogType.map(s => el('option',{value:s},s))); ty.value = S.lf.type;
+  const pr = el('select',{}, el('option',{value:''},'全部工程'), S.projects.map(p => el('option',{value:p.ProjectID},p.Name))); pr.value = S.lf.project;
+  function draw(){
+    const k = S.lf.q.trim().toLowerCase();
+    const rows = S.logs.filter(l => (!S.lf.type || l.Type===S.lf.type) && (!S.lf.project || l.ProjectID===S.lf.project) &&
+      (!k || [l.Title,l.Content,l.Parties,l.Result,l.Source].join(' ').toLowerCase().includes(k)))
+      .sort((a,b) => b.EventAt.localeCompare(a.EventAt));
+    list.replaceChildren(...(rows.length ? rows.map(l => logCard(l,true)) : [el('p',{class:'mut'},'沒有符合的紀錄')]));
+  }
+  q.oninput = () => { S.lf.q = q.value; draw(); };
+  ty.onchange = () => { S.lf.type = ty.value; draw(); };
+  pr.onchange = () => { S.lf.project = pr.value; draw(); };
+  wrap.append(el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>newLog('')},'＋ 新增紀錄')),
+              el('div',{class:'row'}, q), el('div',{class:'row'}, ty, pr), list);
+  draw(); return wrap;
+}
+
+/* ---------- 設定 ---------- */
+function settingsView(){
+  const out = el('div',{class:'mut'});
+  return el('div',{},
+    el('div',{class:'card'}, el('div',{},'後端版本：'+S.meta.version),
+      el('div',{},'工程 '+S.projects.length+' 項 · 紀錄 '+S.logs.length+' 條 · 檢查項目 '+S.checklist.length+' 項'), out),
+    el('div',{class:'row'},
+      el('button',{class:'btn sec',onclick:async()=>{ out.textContent='測試中…'; try{ const r=await fetch(API_URL); const d=await r.json(); out.textContent='連線正常：'+d.version; }catch(e){ out.textContent='連線失敗：'+e.message; } }},'測試連線'),
+      el('button',{class:'btn sec',onclick:()=>refresh('已重新載入')},'重新載入資料')),
+    el('div',{class:'row'}, el('button',{class:'btn dan',onclick:()=>{clearPw();location.reload();}},'登出')));
+}
+
+/* ---------- 登入及啟動 ---------- */
+function loginView(msg){
+  $('#nav').style.display = 'none';
+  const pw = el('input',{type:'password',placeholder:'密碼',autocomplete:'current-password'});
+  const rem = el('input',{type:'checkbox'});
+  const go = () => { (rem.checked ? localStorage : sessionStorage).setItem('pw', pw.value); init(); };
+  pw.onkeydown = ev => { if (ev.key === 'Enter') go(); };
+  $('#main').replaceChildren(el('div',{class:'card'}, el('h3',{},'登入'),
+    msg ? el('div',{style:'color:#b91c1c'},msg) : null, pw,
+    el('label',{}, rem, ' 記住此裝置（共用電腦請勿選）'),
+    el('div',{class:'row'}, el('button',{class:'btn',onclick:go},'登入'))));
+}
+function render(){
+  $('#nav').style.display = 'flex';
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === (S.view==='project'?'projects':S.view)));
+  const v = S.view==='project' ? projectView() : S.view==='logbook' ? logbookView() : S.view==='settings' ? settingsView() : projectsView();
+  $('#main').replaceChildren(v);
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => { S.view = b.dataset.v; S.projectId = null; render(); });
+
+async function init(){
+  if (!getPw()) return loginView('');
+  $('#main').replaceChildren(el('p',{class:'mut'},'載入中…'));
+  try { S.meta = await api('meta'); await loadData(); render(); }
+  catch(e){
+    if (/Unauthorized|Too many/.test(e.message)) { clearPw(); loginView(e.message==='Unauthorized'?'密碼不正確':'錯誤次數過多，請稍後再試'); }
+    else $('#main').replaceChildren(el('div',{class:'card'}, el('div',{style:'color:#b91c1c'},'載入失敗：'+e.message),
+      el('div',{class:'row'}, el('button',{class:'btn',onclick:init},'重試'))));
+  }
+}
+init();
+</script>
+</body>
+</html>
