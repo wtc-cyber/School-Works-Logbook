@@ -466,7 +466,16 @@ function checklistSection(p){
       (groups[k] = groups[k] || []).push(i);
     });
     Object.keys(groups).sort().forEach(cat => {
-      const card = el('div',{class:'card'}, el('strong',{},cat));
+      const card = el('div',{class:'card'});
+      const head = el('div',{style:'display:flex;align-items:center;justify-content:space-between;gap:8px'},
+        el('strong',{},cat),
+        el('button',{
+          class:'btn dan',
+          style:'flex:none;min-height:32px;min-width:0;padding:4px 10px;font-size:13px',
+          onclick:()=>delCategory(p.ProjectID, cat)
+        },'刪除此類別')
+      );
+      card.append(head);
       groups[cat].sort((a,b) => a.ItemID.localeCompare(b.ItemID)).forEach(i => card.append(checkRow(i,today)));
       wrap.append(card);
     });
@@ -481,8 +490,9 @@ function checkRow(i, today){
   const title = el('div',{style:'flex:1;'+(i.Done === 'Y' ? 'text-decoration:line-through;color:#6b7280' : '')},
     i.Title, i.Required === 'Y' ? el('span',{class:'badge warn',style:'margin-left:6px'},'必須') : null,
     sub ? el('div',{class:'mut',style:overdue ? 'color:#b91c1c' : ''}, sub) : null);
-  const edit = el('button',{class:'btn sec',style:'flex:none;min-height:36px;min-width:0;padding:6px 12px;font-size:14px',onclick:()=>editCheck(i)},'✎ 修改');
-  return el('div',{style:'display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title, edit);
+  const edit = el('button',{class:'btn sec',style:'flex:none;min-height:36px;min-width:0;padding:6px 10px;font-size:13px',onclick:()=>editCheck(i)},'✎');
+  const del  = el('button',{class:'btn dan',style:'flex:none;min-height:36px;min-width:0;padding:6px 10px;font-size:13px',onclick:()=>delCheck(i)},'刪');
+  return el('div',{style:'display:flex;align-items:flex-start;gap:6px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title, edit, del);
 }
 async function toggleItem(i, cb){
   const done = cb.checked; cb.disabled = true;
@@ -502,6 +512,23 @@ function editCheck(i){
   openForm({title:'修改檢查項目', fields:CF, values:i,
     onSave:d=>api('update',{table:'Checklist',id:i.ItemID,data:d,expectedUpdatedAt:i.UpdatedAt}),
     onDelete:()=>api('delete',{table:'Checklist',id:i.ItemID})});
+}
+async function delCheck(i){
+  if (!confirm('刪除「'+i.Title+'」？\n（會標記為已刪除，可於 Google Sheets 將 IsDeleted 改回 N 還原）')) return;
+  try {
+    await api('delete',{table:'Checklist',id:i.ItemID});
+    await refresh('已刪除');
+  } catch(e){ toast('刪除失敗：'+e.message,'err',6000); }
+}
+async function delCategory(pid, cat){
+  const items = S.checklist.filter(i => i.ProjectID === pid && (i.Category || '未分類') === cat);
+  if (!items.length) return;
+  if (!confirm('刪除「'+cat+'」下全部 '+items.length+' 項？\n（會標記為已刪除，可於 Google Sheets 還原）')) return;
+  toast('刪除中…','info',0);
+  try {
+    for (const i of items) await api('delete',{table:'Checklist',id:i.ItemID});
+    await refresh('已刪除 '+items.length+' 項');
+  } catch(e){ toast('刪除失敗：'+e.message,'err',6000); }
 }
 async function seedCheck(p){
   if (!confirm('為「'+p.Name+'」套用預設清單（24 項，全部為非必須，之後可修改或刪除）？')) return;
