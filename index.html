@@ -36,6 +36,12 @@ label{display:block;margin:12px 0 2px;font-size:14px;font-weight:600}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20;overflow:auto}
 #modal .box{background:#fff;max-width:640px;margin:0 auto;min-height:100%;padding:16px}
 #formErr{color:var(--err);margin:10px 0;white-space:pre-wrap}
+/* 相片 */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;margin:8px 0}
+.pcell{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--bd);background:#f9fafb}
+.pcell img{width:100%;height:100%;object-fit:cover;display:block}
+.pdel{position:absolute;top:2px;right:2px;width:22px;height:22px;min-height:0;padding:0;border:0;border-radius:50%;
+      background:rgba(185,28,28,.9);color:#fff;font-size:14px;line-height:1;cursor:pointer}
 </style>
 </head>
 <body>
@@ -54,8 +60,8 @@ label{display:block;margin:12px 0 2px;font-size:14px;font-weight:600}
 const API_URL = 'https://script.google.com/macros/s/AKfycby05A2qYvYOsqPfFDDarLreBsoBtskympLc9tjwaF2LbH9as0SwC10KEzVoAt8j5BkX2w/exec';
 
 const $ = s => document.querySelector(s);
-const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], onlyOpen:false,
-            pf:{q:'',status:''}, lf:{q:'',type:'',project:''} };
+const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], photos:[],
+            onlyOpen:false, pf:{q:'',status:''}, lf:{q:'',type:'',project:''} };
 
 /* ---------- 欄位定義（前端表單用；驗證以後端為準）---------- */
 const PF = [
@@ -117,8 +123,8 @@ const getPw = () => sessionStorage.getItem('pw') || localStorage.getItem('pw') |
 const clearPw = () => { sessionStorage.removeItem('pw'); localStorage.removeItem('pw'); };
 
 /* ---------- API ---------- */
-async function api(action, payload){
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 30000);
+async function api(action, payload, timeoutMs){
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), timeoutMs || 30000);
   try {
     const res = await fetch(API_URL, {
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -136,9 +142,17 @@ async function api(action, payload){
 }
 
 async function loadData(){
-  const [p, l, c] = await Promise.all([api('list',{table:'Projects'}), api('list',{table:'Logbook'}), api('list',{table:'Checklist'})]);
+  const [p, l, c, ph] = await Promise.all([
+    api('list',{table:'Projects'}),
+    api('list',{table:'Logbook'}),
+    api('list',{table:'Checklist'}),
+    api('list',{table:'Photos'})
+  ]);
   const ids = new Set(p.map(x => x.ProjectID));
-  S.projects = p; S.logs = l.filter(x => ids.has(x.ProjectID)); S.checklist = c.filter(x => ids.has(x.ProjectID));
+  S.projects = p;
+  S.logs = l.filter(x => ids.has(x.ProjectID));
+  S.checklist = c.filter(x => ids.has(x.ProjectID));
+  S.photos = ph.filter(x => ids.has(x.ProjectID));
 }
 async function refresh(okMsg){
   toast('載入中…','info',0);
@@ -173,6 +187,9 @@ function openForm(o){
     inp[f.n] = c;
     box.append(el('label',{}, f.l, f.req ? el('span',{class:'req'},' *') : null), c);
   });
+
+  if (o.extra) box.append(o.extra());   // ← 相片選擇器之類的額外區塊
+
   const btn = el('button',{class:'btn'}, o.saveLabel||'儲存');
   btn.onclick = async () => {
     err.textContent = '';
@@ -180,11 +197,28 @@ function openForm(o){
     o.fields.forEach(f => { const c = inp[f.n]; data[f.n] = f.t==='check' ? (c.checked?'Y':'N') : c.value.trim(); });
     for (const f of o.fields) if (f.req && !data[f.n]) { err.textContent = f.l+' 必填'; return; }
     btn.disabled = true; btn.textContent = '儲存中…';
-    let ok = false;
-    try { await o.onSave(data, rid); ok = true; }
-    catch(e){ err.textContent = '儲存失敗：'+e.message+'\n（輸入內容已保留，可再按儲存）'; }
-    btn.disabled = false; btn.textContent = o.saveLabel||'儲存';
-    if (ok) { closeModal(); refresh('已儲存'); }
+
+    let res;
+    try {
+      res = await o.onSave(data, rid);
+    } catch(e){
+      err.textContent = '儲存失敗：'+e.message+'\n（輸入內容已保留，可再按儲存）';
+      btn.disabled = false; btn.textContent = o.saveLabel||'儲存';
+      return;
+    }
+
+    if (o.afterSave) {
+      btn.textContent = '上傳相片中…';
+      try { await o.afterSave(res); }
+      catch(e){
+        err.textContent = '紀錄已儲存，但相片上傳失敗：'+e.message+'\n（可關閉後在紀錄詳情重新上傳）';
+        btn.disabled = false; btn.textContent = o.saveLabel||'儲存';
+        toast('紀錄已儲存','ok');
+        return;
+      }
+    }
+    closeModal();
+    refresh('已儲存');
   };
   const row = el('div',{class:'row'}, btn, el('button',{class:'btn sec',onclick:closeModal},'取消'));
   if (o.onDelete) row.append(el('button',{class:'btn dan',onclick:async()=>{
@@ -194,6 +228,151 @@ function openForm(o){
   }},'刪除'));
   box.append(err, row);
   const m = $('#modal'); m.replaceChildren(box); m.style.display='block'; m.scrollTop = 0; document.body.style.overflow='hidden';
+}
+
+/* ---------- 相片：壓縮、上傳、顯示 ---------- */
+function compressImage(file){
+  const MAX = 1600, Q = 0.82;
+  return new Promise(resolve => {
+    if (file.type === 'image/gif') return resolve(file);   // 保留動圖
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    let done = false;
+    const finish = b => { if (done) return; done = true; URL.revokeObjectURL(url); resolve(b); };
+    img.onload = () => {
+      try {
+        let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        if (!w || !h) return finish(file);
+        const s = Math.min(1, MAX / Math.max(w, h));
+        w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        c.toBlob(b => finish(b || file), 'image/jpeg', Q);
+      } catch(e){ finish(file); }
+    };
+    img.onerror = () => finish(file);   // HEIC 等無法解碼者，原檔上傳
+    img.src = url;
+  });
+}
+function blobToBase64(blob){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(new Error('讀取檔案失敗'));
+    r.readAsDataURL(blob);
+  });
+}
+async function uploadPhotoFile(file, projectId, logId){
+  const blob = await compressImage(file);
+  const mime = blob.type || file.type || 'image/jpeg';
+  const data = await blobToBase64(blob);
+  if (!data) throw new Error('無法讀取圖片');
+  return api('uploadPhoto', {
+    projectId: projectId,
+    logId: logId || '',
+    filename: file.name || ('photo.' + (mime.split('/')[1] || 'jpg')),
+    mimeType: mime,
+    data: data,
+    requestId: crypto.randomUUID()
+  }, 90000);
+}
+function photosOf(logId){
+  return S.photos.filter(p => p.LogID === logId && p.IsDeleted !== 'Y')
+    .sort((a,b) => (a.CreatedAt||'').localeCompare(b.CreatedAt||''));
+}
+function photoThumbs(list, canDelete){
+  const wrap = el('div',{class:'pgrid'});
+  list.forEach(p => {
+    const cell = el('div',{class:'pcell'});
+    const a = el('a',{href:p.Url,target:'_blank',rel:'noopener noreferrer',style:'display:block;width:100%;height:100%'});
+    const img = el('img',{
+      src:'https://drive.google.com/thumbnail?id='+encodeURIComponent(p.DriveFileID)+'&sz=w400',
+      loading:'lazy', alt:p.Caption||'相片'});
+    img.onerror = () => { img.style.opacity = '.35'; };
+    a.onclick = ev => ev.stopPropagation();   // 不要觸發卡片展開／收起
+    a.append(img);
+    cell.append(a);
+    if (canDelete) {
+      const x = el('button',{class:'pdel',type:'button',title:'刪除相片'},'×');
+      x.onclick = async ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        if (!confirm('刪除此相片？')) return;
+        try { await api('deletePhoto',{id:p.PhotoID}); await refresh('已刪除相片'); }
+        catch(e){ toast('刪除失敗：'+e.message,'err',6000); }
+      };
+      cell.append(x);
+    }
+    wrap.append(cell);
+  });
+  return wrap;
+}
+
+/* ---------- 表單內的相片選擇器 ---------- */
+function photoPicker(){
+  const files = [];
+  const chips = el('div',{class:'pgrid'});
+  const input = el('input',{type:'file',accept:'image/*',multiple:''});
+  input.onchange = () => {
+    Array.from(input.files||[]).forEach(f => {
+      if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name)) return;
+      files.push(f);
+      const objUrl = URL.createObjectURL(f);
+      const cell = el('div',{class:'pcell'});
+      const img = el('img',{src:objUrl,alt:f.name});
+      const x = el('button',{class:'pdel',type:'button'},'×');
+      x.onclick = ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const i = files.indexOf(f); if (i >= 0) files.splice(i,1);
+        URL.revokeObjectURL(objUrl); cell.remove();
+      };
+      cell.append(img, x);
+      chips.append(cell);
+    });
+    input.value = '';
+  };
+  const node = el('div',{},
+    el('label',{},'相片'),
+    input,
+    el('div',{class:'mut'},'可選多張；上傳時自動壓縮（長邊 1600px），儲存至雲端硬碟'),
+    chips);
+  return {
+    node,
+    hasFiles: () => files.length > 0,
+    upload: async (pid, logId) => {
+      let ok = 0; const errs = [];
+      for (let i = 0; i < files.length; i++) {
+        toast('上傳相片中（'+(i+1)+'/'+files.length+'）…','info',0);
+        try { await uploadPhotoFile(files[i], pid, logId); ok++; }
+        catch(e){ errs.push(e.message); }
+      }
+      files.length = 0;
+      if (errs.length) throw new Error(errs.length+' 張失敗（'+errs[0]+'）');
+      return ok;
+    }
+  };
+}
+
+/* ---------- 紀錄卡片內快速上傳 ---------- */
+function quickAddPhotos(l){
+  const input = el('input',{type:'file',accept:'image/*',multiple:''});
+  input.style.position = 'fixed'; input.style.left = '-9999px';
+  document.body.append(input);
+  input.onchange = async () => {
+    const files = Array.from(input.files||[]);
+    input.remove();
+    if (!files.length) return;
+    let ok = 0; const errs = [];
+    for (let i = 0; i < files.length; i++) {
+      toast('上傳相片中（'+(i+1)+'/'+files.length+'）…','info',0);
+      try { await uploadPhotoFile(files[i], l.ProjectID, l.LogID); ok++; }
+      catch(e){ errs.push(e.message); }
+    }
+    await refresh(errs.length ? '' : '已上傳 '+ok+' 張相片');
+    if (errs.length) toast('已上傳 '+ok+' 張，'+errs.length+' 張失敗：'+errs[0],'err',8000);
+  };
+  input.click();
 }
 
 /* ---------- 工程 ---------- */
@@ -215,11 +394,12 @@ function projectCard(p){
   const n = S.logs.filter(l => l.ProjectID === p.ProjectID).length;
   const ci = S.checklist.filter(i => i.ProjectID === p.ProjectID);
   const cd = ci.filter(i => i.Done === 'Y').length;
+  const pn = S.photos.filter(x => x.ProjectID === p.ProjectID).length;
   return el('div',{class:'card click',onclick:()=>{S.view='project';S.projectId=p.ProjectID;render();}},
     el('div',{}, el('strong',{},p.Name)),
     el('div',{}, el('span',{class:'badge'},p.Status), p.PlannedEnd ? el('span',{class:'mut'},'預計完成 '+p.PlannedEnd) : null),
     el('div',{class:'mut'}, [p.Location,p.Contractor].filter(Boolean).join(' · ')),
-    el('div',{class:'mut'}, '紀錄 '+n+' 條'+(ci.length ? ' · 清單 '+cd+'/'+ci.length : '')));
+    el('div',{class:'mut'}, '紀錄 '+n+' 條'+(pn?' · 相片 '+pn+' 張':'')+(ci.length ? ' · 清單 '+cd+'/'+ci.length : '')));
 }
 function projectsView(){
   const wrap = el('div'), list = el('div');
@@ -335,11 +515,31 @@ async function seedCheck(p){
 /* ---------- Logbook ---------- */
 function newLog(pid){
   if (!S.projects.length) return toast('請先建立工程','err');
-  openForm({title:'新增工程紀錄', fields:LF, values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'},
-            onSave:(d,rid)=>api('create',{table:'Logbook',data:d,requestId:rid})});
+  const picker = photoPicker();
+  openForm({
+    title:'新增工程紀錄', fields:LF,
+    values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'},
+    extra: () => picker.node,
+    onSave:(d,rid)=>api('create',{table:'Logbook',data:d,requestId:rid}),
+    afterSave: async res => {
+      if (!picker.hasFiles()) return;
+      const rec = res && res.record;
+      if (!rec || !rec.LogID) throw new Error('找不到紀錄 ID');
+      await picker.upload(rec.ProjectID, rec.LogID);
+    }
+  });
 }
 function editLog(l){
-  openForm({title:'修改紀錄', fields:LF, values:l, onSave:d=>api('update',{table:'Logbook',id:l.LogID,data:d,expectedUpdatedAt:l.UpdatedAt})});
+  const picker = photoPicker();
+  openForm({
+    title:'修改紀錄', fields:LF, values:l,
+    extra: () => picker.node,
+    onSave:d=>api('update',{table:'Logbook',id:l.LogID,data:d,expectedUpdatedAt:l.UpdatedAt}),
+    afterSave: async () => {
+      if (!picker.hasFiles()) return;
+      await picker.upload(l.ProjectID, l.LogID);
+    }
+  });
 }
 function logCard(l, showProj){
   const proj = S.projects.find(p => p.ProjectID === l.ProjectID);
@@ -352,11 +552,24 @@ function logCard(l, showProj){
   (l.AttachmentLinks||'').split('\n').map(s => s.trim()).filter(Boolean).forEach(s => {
     det.append(/^https?:\/\//i.test(s) ? el('div',{}, el('a',{href:s,target:'_blank',rel:'noopener noreferrer'},s)) : el('div',{class:'mut'},s));
   });
-  det.append(el('div',{class:'mut'},'ID：'+l.LogID+' · 建立 '+l.CreatedAt.slice(0,16).replace('T',' ')+' · 修改 '+l.UpdatedAt.slice(0,16).replace('T',' ')),
-             el('div',{class:'row'}, el('button',{class:'btn sec',onclick:()=>editLog(l)},'修改')));
+
+  // ── 相片 ──
+  const ph = photosOf(l.LogID);
+  if (ph.length) {
+    det.append(el('div',{class:'mut',style:'margin-top:8px'},'相片（'+ph.length+'）'));
+    det.append(photoThumbs(ph, true));
+  }
+
+  det.append(
+    el('div',{class:'row'},
+      el('button',{class:'btn sec',onclick:()=>quickAddPhotos(l)},'＋ 上傳相片'),
+      el('button',{class:'btn sec',onclick:()=>editLog(l)},'修改')),
+    el('div',{class:'mut'},'ID：'+l.LogID+' · 建立 '+l.CreatedAt.slice(0,16).replace('T',' ')+' · 修改 '+l.UpdatedAt.slice(0,16).replace('T',' ')));
+
   return el('div',{class:'card click',onclick:()=>{det.style.display = det.style.display==='none'?'block':'none';}},
     el('div',{class:'mut'}, l.EventAt.replace('T',' ')),
-    el('div',{}, el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, el('strong',{},l.Title)),
+    el('div',{}, el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, el('strong',{},l.Title),
+      ph.length ? el('span',{class:'badge',style:'margin-left:6px'},'📷 '+ph.length) : null),
     showProj && proj ? el('div',{class:'mut'},proj.Name) : null, det);
 }
 function logbookView(){
@@ -384,7 +597,7 @@ function settingsView(){
   const out = el('div',{class:'mut'});
   return el('div',{},
     el('div',{class:'card'}, el('div',{},'後端版本：'+S.meta.version),
-      el('div',{},'工程 '+S.projects.length+' 項 · 紀錄 '+S.logs.length+' 條 · 檢查項目 '+S.checklist.length+' 項'), out),
+      el('div',{},'工程 '+S.projects.length+' 項 · 紀錄 '+S.logs.length+' 條 · 檢查項目 '+S.checklist.length+' 項 · 相片 '+S.photos.length+' 張'), out),
     el('div',{class:'row'},
       el('button',{class:'btn sec',onclick:async()=>{ out.textContent='測試中…'; try{ const r=await fetch(API_URL); const d=await r.json(); out.textContent='連線正常：'+d.version; }catch(e){ out.textContent='連線失敗：'+e.message; } }},'測試連線'),
       el('button',{class:'btn sec',onclick:()=>refresh('已重新載入')},'重新載入資料')),
