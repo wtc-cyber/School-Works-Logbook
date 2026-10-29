@@ -28,10 +28,7 @@ nav{
   display:none;z-index:5;
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
-nav button{
-  flex:1;padding:14px 4px;border:0;background:none;font-size:15px;color:var(--mut);
-  min-height:56px;touch-action:manipulation;
-}
+nav button{flex:1;padding:14px 4px;border:0;background:none;font-size:15px;color:var(--mut);min-height:56px;touch-action:manipulation}
 nav button.on{color:var(--pri);font-weight:700;border-top:3px solid var(--pri)}
 .card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:12px;margin:8px 0}
 .click{cursor:pointer}
@@ -45,48 +42,22 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-ra
 textarea{min-height:90px}
 label{display:block;margin:12px 0 2px;font-size:14px;font-weight:600}
 .req{color:var(--err)}
-input[type=checkbox]{
-  width:22px;height:22px;min-width:22px;min-height:22px;
-  margin:8px 4px;flex:none;accent-color:var(--pri);
-  touch-action:manipulation;
-}
-.btn{
-  padding:11px 16px;border:0;border-radius:6px;background:var(--pri);color:#fff;
-  min-height:44px;cursor:pointer;touch-action:manipulation;
-  -webkit-appearance:none;appearance:none;
-}
+input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:8px 4px;flex:none;accent-color:var(--pri);touch-action:manipulation}
+.btn{padding:11px 16px;border:0;border-radius:6px;background:var(--pri);color:#fff;min-height:44px;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none}
 .btn.sec{background:#e5e7eb;color:#111827}
 .btn.dan{background:var(--err)}
 .btn:disabled{opacity:.5}
-#toast{
-  position:fixed;left:12px;right:12px;
-  bottom:calc(84px + env(safe-area-inset-bottom,0px));
-  padding:12px;border-radius:8px;color:#fff;display:none;z-index:40;
-  pointer-events:none;          /* ★ 關鍵：不攔截下方按鈕的點擊 */
-  font-size:14px;
-}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));padding:12px;border-radius:8px;color:#fff;display:none;z-index:40;pointer-events:none;font-size:14px;white-space:pre-wrap}
 #toast.ok{background:var(--ok)}
 #toast.err{background:var(--err)}
 #toast.info{background:#374151}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20;overflow:auto}
-#modal .box{
-  background:#fff;max-width:640px;margin:0 auto;
-  min-height:100dvh;
-  padding:16px;
-  padding-top:calc(16px + env(safe-area-inset-top,0px));
-  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));
-}
+#modal .box{background:#fff;max-width:640px;margin:0 auto;min-height:100dvh;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 #formErr{color:var(--err);margin:10px 0;white-space:pre-wrap}
-/* 相片 */
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;margin:8px 0}
 .pcell{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--bd);background:#f9fafb}
 .pcell img{width:100%;height:100%;object-fit:cover;display:block}
-.pdel{
-  position:absolute;top:2px;right:2px;width:28px;height:28px;
-  min-height:0;padding:0;border:0;border-radius:50%;
-  background:rgba(185,28,28,.92);color:#fff;font-size:16px;line-height:1;
-  cursor:pointer;touch-action:manipulation;
-}
+.pdel{position:absolute;top:2px;right:2px;width:28px;height:28px;min-height:0;padding:0;border:0;border-radius:50%;background:rgba(185,28,28,.92);color:#fff;font-size:16px;line-height:1;cursor:pointer;touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -101,14 +72,13 @@ input[type=checkbox]{
 <div id="modal"></div>
 
 <script>
-// ★ 填入 GAS /exec 網址（與之前相同即可）
+// ★ 填入 GAS /exec 網址
 const API_URL = 'https://script.google.com/macros/s/AKfycby05A2qYvYOsqPfFDDarLreBsoBtskympLc9tjwaF2LbH9as0SwC10KEzVoAt8j5BkX2w/exec';
 
 const $ = s => document.querySelector(s);
 const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], photos:[],
             onlyOpen:false, pf:{q:'',status:''}, lf:{q:'',type:'',project:''} };
 
-/* ---------- 欄位定義 ---------- */
 const PF = [
  {n:'Name',l:'工程名稱',t:'text',req:1},
  {n:'Status',l:'工程狀態',t:'select',en:'ProjectStatus',req:1,def:'尚未開始'},
@@ -142,7 +112,6 @@ const CF = [
  {n:'DueDate',l:'期限',t:'date'},
  {n:'Remarks',l:'備註',t:'area'}];
 
-/* ---------- 小工具 ---------- */
 function el(tag, attrs, ...kids){
   const e = document.createElement(tag);
   for (const k in (attrs||{})) {
@@ -167,7 +136,7 @@ function toast(msg, cls, ms){
 const getPw = () => sessionStorage.getItem('pw') || localStorage.getItem('pw') || '';
 const clearPw = () => { sessionStorage.removeItem('pw'); localStorage.removeItem('pw'); };
 
-/* ---------- API ---------- */
+/* ---------- API：把非 JSON 回應也講清楚，方便除錯 ---------- */
 async function api(action, payload, timeoutMs){
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), timeoutMs || 30000);
   try {
@@ -175,18 +144,20 @@ async function api(action, payload, timeoutMs){
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify(Object.assign({action, password:getPw()}, payload||{})),
       redirect:'follow', signal:ctl.signal });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const d = await res.json();
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const txt = await res.text();
+    let d;
+    try { d = JSON.parse(txt); }
+    catch(x){ throw new Error('伺服器回應不是 JSON（多數係部署權限／未部署新版本）\n前 200 字：' + txt.slice(0,200)); }
     if (!d.ok) throw new Error(d.error || '未知錯誤');
     return d.data;
   } catch (e) {
     if (e.name === 'AbortError') throw new Error('連線逾時，請檢查網絡後重試');
-    if (e instanceof TypeError) throw new Error('網絡錯誤，無法連線伺服器');
+    if (e instanceof TypeError) throw new Error('網絡錯誤：' + e.message);
     throw e;
   } finally { clearTimeout(timer); }
 }
 
-/* ---------- 一次性載入全部資料（取代原本 4 次並行請求）---------- */
 function applyBootstrap(d){
   S.meta = { version: d.version, enums: d.enums };
   const ids = new Set(d.projects.map(x => x.ProjectID));
@@ -264,9 +235,8 @@ function openForm(o){
   const m = $('#modal'); m.replaceChildren(box); m.style.display='block'; m.scrollTop = 0; document.body.style.overflow='hidden';
 }
 
-/* ---------- 相片：壓縮、上傳、顯示 ---------- */
+/* ---------- 相片 ---------- */
 function compressImage(file){
-  // 更積極的壓縮：長邊 1280、JPEG 0.75，明顯加快上傳
   const MAX = 1280, Q = 0.75;
   return new Promise(resolve => {
     if (file.type === 'image/gif') return resolve(file);
@@ -309,7 +279,6 @@ async function uploadPhotoFile(file, projectId, logId){
     mimeType: mime, data, requestId: crypto.randomUUID()
   }, 120000);
 }
-/* 並發上傳（最多 3 條同時傳輸，顯著加快多張相片） */
 async function uploadMany(files, projectId, logId, onProgress){
   const CONC = 3, total = files.length;
   const queue = files.slice();
@@ -498,11 +467,7 @@ function checklistSection(p){
       const card = el('div',{class:'card'});
       card.append(el('div',{style:'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap'},
         el('strong',{},cat),
-        el('button',{
-          class:'btn dan',
-          style:'flex:none;min-height:40px;padding:4px 10px;font-size:13px',
-          onclick:()=>delCategory(p.ProjectID, cat)
-        },'刪除此類別')
+        el('button',{class:'btn dan',style:'flex:none;min-height:40px;padding:4px 10px;font-size:13px',onclick:()=>delCategory(p.ProjectID, cat)},'刪除此類別')
       ));
       groups[cat].sort((a,b) => a.ItemID.localeCompare(b.ItemID)).forEach(i => card.append(checkRow(i,today)));
       wrap.append(card);
@@ -571,7 +536,7 @@ function newLog(pid){
   const picker = photoPicker();
   openForm({
     title:'新增工程紀錄', fields:LF,
-    values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'},
+    values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'視察'},
     extra: () => picker.node,
     onSave:(d,rid)=>api('create',{table:'Logbook',data:d,requestId:rid}),
     afterSave: async res => {
@@ -645,7 +610,11 @@ function settingsView(){
     el('div',{class:'card'}, el('div',{},'後端版本：'+S.meta.version),
       el('div',{},'工程 '+S.projects.length+' 項 · 紀錄 '+S.logs.length+' 條 · 檢查項目 '+S.checklist.length+' 項 · 相片 '+S.photos.length+' 張'), out),
     el('div',{class:'row'},
-      el('button',{class:'btn sec',onclick:async()=>{ out.textContent='測試中…'; try{ const r=await fetch(API_URL); const d=await r.json(); out.textContent='連線正常：'+d.version; }catch(e){ out.textContent='連線失敗：'+e.message; } }},'測試連線'),
+      el('button',{class:'btn sec',onclick:async()=>{
+        out.textContent='測試中…';
+        try { const r=await fetch(API_URL); const d=await r.json(); out.textContent='連線正常：'+d.version + (d.version==='V0.1c-2'?'（最新）':'（⚠ 後端未更新，請重新部署新版本）'); }
+        catch(e){ out.textContent='連線失敗：'+e.message; }
+      }},'測試連線'),
       el('button',{class:'btn sec',onclick:()=>refresh('已重新載入')},'重新載入資料')),
     el('div',{class:'row'}, el('button',{class:'btn dan',onclick:()=>{clearPw();location.reload();}},'登出')));
 }
@@ -673,10 +642,8 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => { S.view 
 async function init(){
   if (!getPw()) return loginView('');
   $('#main').replaceChildren(el('p',{class:'mut'},'載入中…'));
-  try {
-    applyBootstrap(await api('bootstrap'));
-    render();
-  } catch(e){
+  try { applyBootstrap(await api('bootstrap')); render(); }
+  catch(e){
     if (/Unauthorized|Too many/.test(e.message)) { clearPw(); loginView(e.message==='Unauthorized'?'密碼不正確':'錯誤次數過多，請稍後再試'); }
     else $('#main').replaceChildren(el('div',{class:'card'}, el('div',{style:'color:#b91c1c'},'載入失敗：'+e.message),
       el('div',{class:'row'}, el('button',{class:'btn',onclick:init},'重試'))));
