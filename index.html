@@ -48,11 +48,21 @@ label{display:block;margin:12px 0 2px;font-size:14px;font-weight:600}
 #toast.ok{background:var(--ok)}#toast.err{background:var(--err)}#toast.info{background:#374151}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20;overflow:auto}
 #modal .box{background:#fff;max-width:640px;margin:0 auto;min-height:100%;padding:16px}
+.att{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.row>span>.btn{flex:1;min-width:120px}
+.att .it{position:relative;border:1px solid var(--bd);border-radius:8px;background:#fff;overflow:hidden}
+.att .img{width:96px;height:96px}
+.att .img a{display:block;width:100%;height:100%}
+.att .img img{width:100%;height:100%;object-fit:cover;display:block}
+.att .doc{flex:1 1 100%;display:flex;align-items:center;gap:8px;padding:8px 36px 8px 10px;min-height:44px}
+.att .doc a{word-break:break-all}
+.att .x{position:absolute;top:2px;right:2px;width:28px;height:28px;border:0;border-radius:14px;background:rgba(0,0,0,.55);color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.att .doc .x{top:8px;right:6px;background:#9ca3af}
 #formErr{color:var(--err);margin:10px 0;white-space:pre-wrap}
 </style>
 </head>
 <body>
-<header>School Works Logbook<small>V0.1c-3</small><span id="sync"></span><button id="install" type="button">安裝</button></header>
+<header>School Works Logbook<small>V0.1d-1</small><span id="sync"></span><button id="install" type="button">安裝</button></header>
 <div id="offline">目前離線，無法同步資料</div>
 <main id="main"></main>
 <nav id="nav">
@@ -69,7 +79,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby05A2qYvYOsqPfFDDarLre
 
 const $ = s => document.querySelector(s);
 const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], photos:[], onlyOpen:false,
-            logsBy:{}, chkBy:{}, pk:new Map(), lk:new Map(),
+            logsBy:{}, chkBy:{}, attP:{}, attL:{}, pk:new Map(), lk:new Map(),
             pf:{q:'',status:''}, lf:{q:'',type:'',project:''} };
 const PAGE = 40;
 
@@ -133,8 +143,8 @@ const getPw = () => sessionStorage.getItem('pw') || localStorage.getItem('pw') |
 const clearPw = () => { sessionStorage.removeItem('pw'); localStorage.removeItem('pw'); };
 
 /* ---------- API ---------- */
-async function api(action, payload){
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 30000);
+async function api(action, payload, ms){
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms || 30000);
   try {
     const res = await fetch(API_URL, {
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -207,7 +217,9 @@ function rebuild(){
   S.projects = [...ps.values()].sort((a,b) => b.UpdatedAt.localeCompare(a.UpdatedAt));
   S.logs = [...D.Logbook.values()].filter(x => ps.has(x.ProjectID)).sort((a,b) => b.EventAt.localeCompare(a.EventAt));
   S.checklist = [...D.Checklist.values()].filter(x => ps.has(x.ProjectID)).sort((a,b) => a.ItemID.localeCompare(b.ItemID));
-  S.photos = [...D.Photos.values()].filter(x => ps.has(x.ProjectID));
+  S.photos = [...D.Photos.values()].filter(x => ps.has(x.ProjectID)).sort((a,b) => a.PhotoID.localeCompare(b.PhotoID));
+  S.attP = {}; S.attL = {};
+  S.photos.forEach(a => { if (a.LogID) (S.attL[a.LogID] = S.attL[a.LogID] || []).push(a); else (S.attP[a.ProjectID] = S.attP[a.ProjectID] || []).push(a); });
   S.logsBy = {}; S.chkBy = {}; S.pk = new Map(); S.lk = new Map();
   S.projects.forEach(p => S.pk.set(p.ProjectID, [p.Name,p.Location,p.Contractor,p.Category,p.Scope,p.Owner].join(' ').toLowerCase()));
   S.logs.forEach(l => { (S.logsBy[l.ProjectID] = S.logsBy[l.ProjectID] || []).push(l);
@@ -274,6 +286,99 @@ async function mut(action, table, payload){
   } finally { mutSeq++; }
 }
 
+/* ---------- 附件 ---------- */
+const ATT_MAX = 10 * 1024 * 1024;
+const EXT_MIME = {pdf:'application/pdf', doc:'application/msword', xls:'application/vnd.ms-excel', ppt:'application/vnd.ms-powerpoint',
+  docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation', txt:'text/plain', csv:'text/csv',
+  jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', webp:'image/webp', gif:'image/gif', heic:'image/heic', heif:'image/heif'};
+const ATT_ACCEPT = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv';
+function fmtSize(n){ n = Number(n); if (!n) return ''; return n < 1024*1024 ? Math.max(1,Math.round(n/1024))+' KB' : (n/1024/1024).toFixed(1)+' MB'; }
+function fileMime(f){ return (f.type || EXT_MIME[(f.name.split('.').pop()||'').toLowerCase()] || '').toLowerCase(); }
+function toB64(blob){
+  return new Promise((res,rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = () => rej(new Error('讀取檔案失敗')); r.readAsDataURL(blob); });
+}
+// 圖片上傳前壓縮：長邊最多 1600px、JPEG 0.75；壓縮失敗或變大就用原檔
+async function prepFile(f){
+  let mime = fileMime(f), name = f.name || 'file', blob = f;
+  if (/^image\/(jpeg|png|webp|heic|heif)$/.test(mime)) {
+    try {
+      let bmp;
+      try { bmp = await createImageBitmap(f, {imageOrientation:'from-image'}); }
+      catch(e){ bmp = await new Promise((res,rej) => { const im = new Image(), u = URL.createObjectURL(f); im.onload = () => { URL.revokeObjectURL(u); res(im); }; im.onerror = () => rej(new Error('decode')); im.src = u; }); }
+      const w = bmp.width, h = bmp.height, k = Math.min(1, 1600 / Math.max(w,h));
+      const c = document.createElement('canvas'); c.width = Math.round(w*k); c.height = Math.round(h*k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(bmp,0,0,c.width,c.height);
+      if (bmp.close) bmp.close();
+      const out = await new Promise(res => c.toBlob(res,'image/jpeg',0.75));
+      if (out && (out.size < f.size || mime !== 'image/jpeg' || k < 1)) { blob = out; mime = 'image/jpeg'; name = name.replace(/\.[^.]*$/,'') + '.jpg'; }
+    } catch(e){ /* 用原檔 */ }
+  }
+  if (!mime) throw new Error('不支援此檔案類型');
+  if (blob.size > ATT_MAX) throw new Error('檔案過大（上限 10MB）');
+  return {blob, mime, name};
+}
+async function uploadOne(f, pid, logId){
+  const p = await prepFile(f);
+  mutSeq++;
+  try {
+    const r = await api('uploadPhoto',{projectId:pid, logId:logId||'', data:await toB64(p.blob), mimeType:p.mime, filename:p.name, requestId:crypto.randomUUID()}, 120000);
+    if (r.record) mergeRows('Photos',[r.record],true); else await sync();
+    rebuild(); saveCache(); return r;
+  } finally { mutSeq++; }
+}
+// 逐個上傳；回傳失敗數。onProgress(done,total)
+async function uploadMany(files, pid, logId, onProgress){
+  const list = [...files]; let bad = 0, firstErr = '';
+  for (let i = 0; i < list.length; i++) {
+    onProgress && onProgress(i, list.length);
+    try { await uploadOne(list[i], pid, logId); }
+    catch(e){ bad++; firstErr = firstErr || (list[i].name+'：'+e.message); }
+  }
+  onProgress && onProgress(list.length, list.length);
+  return {bad, firstErr, total:list.length};
+}
+async function delAtt(a){
+  if (!confirm('確定刪除附件「'+(a.FileName||'相片')+'」？')) return;
+  mutSeq++;
+  try { await api('deletePhoto',{id:a.PhotoID}); D.Photos.delete(a.PhotoID); rebuild(); saveCache(); }
+  finally { mutSeq++; }
+}
+function pickBtn(label, accept, capture, multiple, onFiles, cls){
+  const inp = el('input',{type:'file', accept, style:'display:none'}); if (multiple) inp.multiple = true; if (capture) inp.setAttribute('capture','environment');
+  inp.onchange = () => { const fs = [...inp.files]; inp.value = ''; if (fs.length) onFiles(fs); };
+  const b = el('button',{type:'button', class:cls||'btn sec', onclick:() => inp.click()}, label);
+  return el('span',{style:'display:contents'}, b, inp);
+}
+// 附件區：logId 為空 = 工程附件
+function attachSection(pid, logId){
+  const box = el('div'), grid = el('div',{class:'att'}), msg = el('div',{class:'mut'});
+  const items = () => (logId ? S.attL[logId] : S.attP[pid]) || [];
+  function draw(){
+    grid.replaceChildren(...items().map(a => {
+      const isImg = a.ThumbUrl && (!a.MimeType || a.MimeType.startsWith('image/'));
+      const x = el('button',{class:'x',type:'button',title:'刪除',onclick:async ev => { ev.stopPropagation();
+        try { await delAtt(a); draw(); } catch(e){ toast('刪除失敗：'+e.message,'err',6000); } }},'✕');
+      if (isImg) {
+        const img = el('img',{src:a.ThumbUrl, loading:'lazy', alt:a.FileName||'相片'});
+        img.onerror = () => img.replaceWith(el('div',{class:'mut',style:'padding:8px;font-size:12px'},a.FileName||'相片'));
+        return el('div',{class:'it img'}, el('a',{href:a.Url,target:'_blank',rel:'noopener noreferrer'}, img), x);
+      }
+      return el('div',{class:'it doc'}, '📄', el('span',{}, el('a',{href:a.Url,target:'_blank',rel:'noopener noreferrer'}, a.FileName||'檔案'),
+        el('div',{class:'mut'}, fmtSize(a.Size))), x);
+    }));
+    if (!items().length) grid.append(el('span',{class:'mut'},'暫時沒有附件'));
+  }
+  async function go(files){
+    const res = await uploadMany(files, pid, logId, (d,t) => { msg.textContent = d < t ? '上傳中 '+(d+1)+' / '+t+'…' : ''; });
+    draw();
+    if (res.bad) toast('有 '+res.bad+' 個上傳失敗：'+res.firstErr,'err',7000); else toast('已上傳 '+res.total+' 個附件','ok');
+  }
+  box.append(grid, msg, el('div',{class:'row'},
+    pickBtn('＋ 新增附件', ATT_ACCEPT, false, true, go), pickBtn('📷 拍照', 'image/*', true, false, go)));
+  draw(); return box;
+}
+
 /* ---------- 表單 ---------- */
 function closeModal(){ const m=$('#modal'); m.style.display='none'; m.replaceChildren(); document.body.style.overflow=''; }
 function openForm(o){
@@ -301,6 +406,15 @@ function openForm(o){
     inp[f.n] = c;
     box.append(el('label',{}, f.l, f.req ? el('span',{class:'req'},' *') : null), c);
   });
+  let pending = [], attInfo = null;
+  if (o.attach) {
+    attInfo = el('div',{class:'mut'},'未選擇附件');
+    const upd = () => { attInfo.textContent = pending.length ? '已選 '+pending.length+' 個：'+pending.map(f => f.name).join('、') : '未選擇附件'; };
+    const add = fs => { pending = pending.concat(fs); upd(); };
+    box.append(el('label',{},'附件（儲存後自動上傳）'), attInfo,
+      el('div',{class:'row'}, pickBtn('＋ 選擇檔案', ATT_ACCEPT, false, true, add), pickBtn('📷 拍照', 'image/*', true, false, add),
+        el('button',{type:'button',class:'btn sec',onclick:() => { pending = []; upd(); }},'清除')));
+  }
   const btn = el('button',{class:'btn'}, o.saveLabel||'儲存');
   btn.onclick = async () => {
     err.textContent = '';
@@ -308,11 +422,19 @@ function openForm(o){
     o.fields.forEach(f => { const c = inp[f.n]; data[f.n] = f.t==='check' ? (c.checked?'Y':'N') : c.value.trim(); });
     for (const f of o.fields) if (f.req && !data[f.n]) { err.textContent = f.l+' 必填'; return; }
     btn.disabled = true; btn.textContent = '儲存中…';
-    let ok = false;
-    try { await o.onSave(data, rid); ok = true; }
+    let ok = false, saved = null;
+    try { saved = await o.onSave(data, rid); ok = true; }
     catch(e){ err.textContent = '儲存失敗：'+e.message+'\n（輸入內容已保留，可再按儲存）'; }
     btn.disabled = false; btn.textContent = o.saveLabel||'儲存';
-    if (ok) { closeModal(); render(); toast('已儲存','ok'); }
+    if (ok) {
+      closeModal(); render(); toast('已儲存','ok');
+      const rec = saved && saved.record;
+      if (pending.length && rec) {   // 背景上傳附件，完成後更新畫面
+        const files = pending;
+        uploadMany(files, rec.ProjectID, rec.LogID || '', (d,t) => { if (d < t) toast('上傳附件 '+(d+1)+' / '+t+'…','info',0); })
+          .then(r => { render(); toast(r.bad ? '儲存成功，但有 '+r.bad+' 個附件上傳失敗：'+r.firstErr : '已儲存並上傳 '+r.total+' 個附件', r.bad ? 'err' : 'ok', r.bad ? 8000 : 2500); });
+      }
+    }
   };
   const row = el('div',{class:'row'}, btn, el('button',{class:'btn sec',onclick:closeModal},'取消'));
   if (o.onDelete) row.append(el('button',{class:'btn dan',onclick:async()=>{
@@ -326,7 +448,7 @@ function openForm(o){
 
 /* ---------- 工程 ---------- */
 function newProject(){
-  openForm({title:'新增工程', fields:PF, values:{}, onSave:(d,rid)=>mut('create','Projects',{data:d,requestId:rid})});
+  openForm({title:'新增工程', fields:PF, values:{}, attach:true, onSave:(d,rid)=>mut('create','Projects',{data:d,requestId:rid})});
 }
 function editProject(p){
   openForm({title:'修改工程', fields:PF, values:p, onSave:d=>mut('update','Projects',{id:p.ProjectID,data:d,expectedUpdatedAt:p.UpdatedAt})});
@@ -385,6 +507,7 @@ function projectView(){
     info,
     el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>editProject(p)},'修改'),
                             el('button',{class:'btn dan',onclick:()=>delProject(p)},'刪除')),
+    el('h3',{},'工程附件'), attachSection(p.ProjectID,''),
     checklistSection(p),
     el('h3',{},'工程紀錄（'+logs.length+'）'),
     el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>newLog(p.ProjectID)},'＋ 新增紀錄')),
@@ -462,7 +585,7 @@ async function seedCheck(p){
 /* ---------- Logbook ---------- */
 function newLog(pid){
   if (!S.projects.length) return toast('請先建立工程','err');
-  openForm({title:'新增工程紀錄', fields:LF, values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'},
+  openForm({title:'新增工程紀錄', fields:LF, values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'}, attach:true,
             onSave:(d,rid)=>mut('create','Logbook',{data:d,requestId:rid})});
 }
 function editLog(l){
@@ -478,6 +601,7 @@ function logDetail(l){
   (l.AttachmentLinks||'').split('\n').map(s => s.trim()).filter(Boolean).forEach(s => {
     det.append(/^https?:\/\//i.test(s) ? el('div',{}, el('a',{href:s,target:'_blank',rel:'noopener noreferrer'},s)) : el('div',{class:'mut'},s));
   });
+  det.append(el('div',{class:'mut',style:'margin-top:8px'},'附件'), attachSection(l.ProjectID, l.LogID));
   det.append(el('div',{class:'mut'},'ID：'+l.LogID+' · 建立 '+l.CreatedAt.slice(0,16).replace('T',' ')+' · 修改 '+l.UpdatedAt.slice(0,16).replace('T',' ')),
              el('div',{class:'row'}, el('button',{class:'btn sec',onclick:()=>editLog(l)},'修改')));
   return det;
@@ -490,7 +614,7 @@ function logCard(l, showProj){
     else det.style.display = det.style.display === 'none' ? 'block' : 'none';
   }},
     el('div',{class:'mut'}, l.EventAt.replace('T',' ')),
-    el('div',{}, el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, el('strong',{},l.Title)),
+    el('div',{}, el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, (S.attL[l.LogID]||[]).length ? el('span',{class:'badge'},'📎'+S.attL[l.LogID].length) : null, el('strong',{},l.Title)),
     proj ? el('div',{class:'mut'},proj.Name) : null);
   return card;
 }
