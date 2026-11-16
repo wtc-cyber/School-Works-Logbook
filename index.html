@@ -3,65 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="format-detection" content="telephone=no">
-<title>FRCSS總務Logbook</title>
+<meta name="theme-color" content="#1e40af">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Logbook">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>School Works Logbook</title>
 <style>
 :root{--pri:#1e40af;--bg:#f3f4f6;--bd:#e5e7eb;--mut:#6b7280;--err:#b91c1c;--ok:#15803d}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{-webkit-text-size-adjust:100%}
-body{
-  margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;
-  background:var(--bg);color:#111827;
-  padding-bottom:calc(84px + env(safe-area-inset-bottom,0px));
-  overflow-x:hidden;
-}
-header{
-  background:var(--pri);color:#fff;font-weight:600;
-  padding:12px 16px;
-  padding-top:calc(12px + env(safe-area-inset-top,0px));
-  position:sticky;top:0;z-index:5;
-}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:var(--bg);color:#111827;padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
+header{background:var(--pri);color:#fff;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));font-weight:600;position:sticky;top:0;z-index:5;display:flex;align-items:center}
+#install{display:none;margin-left:auto;background:#fff;color:var(--pri);border:0;border-radius:6px;padding:6px 12px;font-size:14px;font-weight:600;cursor:pointer}
+#offline{display:none;background:#92400e;color:#fff;text-align:center;font-size:13px;padding:4px}
 header small{font-weight:400;opacity:.8;margin-left:6px}
 main{max-width:720px;margin:0 auto;padding:12px}
-nav{
-  position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bd);
-  display:none;z-index:5;
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-nav button{flex:1;padding:14px 4px;border:0;background:none;font-size:15px;color:var(--mut);min-height:56px;touch-action:manipulation}
+nav{position:fixed;bottom:0;left:0;right:0;padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid var(--bd);display:none;z-index:5}
+nav button{flex:1;padding:14px 4px;border:0;background:none;font-size:15px;color:var(--mut)}
 nav button.on{color:var(--pri);font-weight:700;border-top:3px solid var(--pri)}
 .card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:12px;margin:8px 0}
 .click{cursor:pointer}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
-.row>*{flex:1 1 120px;min-width:0}
+.row>*{flex:1;min-width:120px}
 .mut{color:var(--mut);font-size:13px}
 .badge{display:inline-block;background:#dbeafe;color:#1e3a8a;border-radius:10px;padding:2px 8px;font-size:12px;margin-right:4px}
 .badge.warn{background:#fef3c7;color:#92400e}
 input,select,textarea,button{font:inherit}
-input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:#fff;font-size:16px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
+input[type=checkbox]{width:auto;transform:scale(1.4);margin:6px}
 textarea{min-height:90px}
 label{display:block;margin:12px 0 2px;font-size:14px;font-weight:600}
 .req{color:var(--err)}
-input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margin:8px 4px;flex:none;accent-color:var(--pri);touch-action:manipulation}
-.btn{padding:11px 16px;border:0;border-radius:6px;background:var(--pri);color:#fff;min-height:44px;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none}
+.btn{padding:11px 16px;border:0;border-radius:6px;background:var(--pri);color:#fff;min-height:44px;cursor:pointer}
 .btn.sec{background:#e5e7eb;color:#111827}
 .btn.dan{background:var(--err)}
 .btn:disabled{opacity:.5}
-#toast{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));padding:12px;border-radius:8px;color:#fff;display:none;z-index:40;pointer-events:none;font-size:14px;white-space:pre-wrap}
-#toast.ok{background:var(--ok)}
-#toast.err{background:var(--err)}
-#toast.info{background:#374151}
+#toast{position:fixed;left:12px;right:12px;bottom:84px;padding:12px;border-radius:8px;color:#fff;display:none;z-index:30}
+#toast.ok{background:var(--ok)}#toast.err{background:var(--err)}#toast.info{background:#374151}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20;overflow:auto}
-#modal .box{background:#fff;max-width:640px;margin:0 auto;min-height:100dvh;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+#modal .box{background:#fff;max-width:640px;margin:0 auto;min-height:100%;padding:16px}
 #formErr{color:var(--err);margin:10px 0;white-space:pre-wrap}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;margin:8px 0}
-.pcell{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--bd);background:#f9fafb}
-.pcell img{width:100%;height:100%;object-fit:cover;display:block}
-.pdel{position:absolute;top:2px;right:2px;width:28px;height:28px;min-height:0;padding:0;border:0;border-radius:50%;background:rgba(185,28,28,.92);color:#fff;font-size:16px;line-height:1;cursor:pointer;touch-action:manipulation}
 </style>
 </head>
 <body>
-<header>FRCSS總務Logbook<small>V1</small></header>
+<header>School Works Logbook<small>V0.1b-1</small><button id="install" type="button">安裝</button></header>
+<div id="offline">目前離線，無法同步資料</div>
 <main id="main"></main>
 <nav id="nav">
   <button data-v="projects">工程</button>
@@ -72,13 +61,14 @@ input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;margi
 <div id="modal"></div>
 
 <script>
-// ★ 填入 GAS /exec 網址
+// ★ 填入 GAS /exec 網址（與之前相同即可）
 const API_URL = 'https://script.google.com/macros/s/AKfycby05A2qYvYOsqPfFDDarLreBsoBtskympLc9tjwaF2LbH9as0SwC10KEzVoAt8j5BkX2w/exec';
 
 const $ = s => document.querySelector(s);
-const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], photos:[],
-            onlyOpen:false, pf:{q:'',status:''}, lf:{q:'',type:'',project:''} };
+const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], onlyOpen:false,
+            pf:{q:'',status:''}, lf:{q:'',type:'',project:''} };
 
+/* ---------- 欄位定義（前端表單用；驗證以後端為準）---------- */
 const PF = [
  {n:'Name',l:'工程名稱',t:'text',req:1},
  {n:'Status',l:'工程狀態',t:'select',en:'ProjectStatus',req:1,def:'尚未開始'},
@@ -112,6 +102,7 @@ const CF = [
  {n:'DueDate',l:'期限',t:'date'},
  {n:'Remarks',l:'備註',t:'area'}];
 
+/* ---------- 小工具 ---------- */
 function el(tag, attrs, ...kids){
   const e = document.createElement(tag);
   for (const k in (attrs||{})) {
@@ -136,39 +127,33 @@ function toast(msg, cls, ms){
 const getPw = () => sessionStorage.getItem('pw') || localStorage.getItem('pw') || '';
 const clearPw = () => { sessionStorage.removeItem('pw'); localStorage.removeItem('pw'); };
 
-/* ---------- API：把非 JSON 回應也講清楚，方便除錯 ---------- */
-async function api(action, payload, timeoutMs){
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), timeoutMs || 30000);
+/* ---------- API ---------- */
+async function api(action, payload){
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 30000);
   try {
     const res = await fetch(API_URL, {
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify(Object.assign({action, password:getPw()}, payload||{})),
       redirect:'follow', signal:ctl.signal });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const txt = await res.text();
-    let d;
-    try { d = JSON.parse(txt); }
-    catch(x){ throw new Error('伺服器回應不是 JSON（多數係部署權限／未部署新版本）\n前 200 字：' + txt.slice(0,200)); }
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const d = await res.json();
     if (!d.ok) throw new Error(d.error || '未知錯誤');
     return d.data;
   } catch (e) {
     if (e.name === 'AbortError') throw new Error('連線逾時，請檢查網絡後重試');
-    if (e instanceof TypeError) throw new Error('網絡錯誤：' + e.message);
+    if (e instanceof TypeError) throw new Error('網絡錯誤，無法連線伺服器');
     throw e;
   } finally { clearTimeout(timer); }
 }
 
-function applyBootstrap(d){
-  S.meta = { version: d.version, enums: d.enums };
-  const ids = new Set(d.projects.map(x => x.ProjectID));
-  S.projects  = d.projects;
-  S.logs      = d.logs.filter(x => ids.has(x.ProjectID));
-  S.checklist = d.checklist.filter(x => ids.has(x.ProjectID));
-  S.photos    = d.photos.filter(x => ids.has(x.ProjectID));
+async function loadData(){
+  const [p, l, c] = await Promise.all([api('list',{table:'Projects'}), api('list',{table:'Logbook'}), api('list',{table:'Checklist'})]);
+  const ids = new Set(p.map(x => x.ProjectID));
+  S.projects = p; S.logs = l.filter(x => ids.has(x.ProjectID)); S.checklist = c.filter(x => ids.has(x.ProjectID));
 }
 async function refresh(okMsg){
   toast('載入中…','info',0);
-  try { applyBootstrap(await api('bootstrap')); toast(okMsg||'', 'ok'); render(); }
+  try { await loadData(); toast(okMsg||'', 'ok'); render(); }
   catch(e){ toast('載入失敗：'+e.message,'err',6000); }
 }
 
@@ -199,8 +184,6 @@ function openForm(o){
     inp[f.n] = c;
     box.append(el('label',{}, f.l, f.req ? el('span',{class:'req'},' *') : null), c);
   });
-  if (o.extra) box.append(o.extra());
-
   const btn = el('button',{class:'btn'}, o.saveLabel||'儲存');
   btn.onclick = async () => {
     err.textContent = '';
@@ -208,22 +191,11 @@ function openForm(o){
     o.fields.forEach(f => { const c = inp[f.n]; data[f.n] = f.t==='check' ? (c.checked?'Y':'N') : c.value.trim(); });
     for (const f of o.fields) if (f.req && !data[f.n]) { err.textContent = f.l+' 必填'; return; }
     btn.disabled = true; btn.textContent = '儲存中…';
-    let res;
-    try { res = await o.onSave(data, rid); }
-    catch(e){
-      err.textContent = '儲存失敗：'+e.message+'\n（輸入內容已保留，可再按儲存）';
-      btn.disabled = false; btn.textContent = o.saveLabel||'儲存'; return;
-    }
-    if (o.afterSave) {
-      btn.textContent = '上傳相片中…';
-      try { await o.afterSave(res); }
-      catch(e){
-        err.textContent = '紀錄已儲存，但相片上傳失敗：'+e.message+'\n（可關閉後在紀錄詳情重新上傳）';
-        btn.disabled = false; btn.textContent = o.saveLabel||'儲存';
-        toast('紀錄已儲存','ok'); return;
-      }
-    }
-    closeModal(); refresh('已儲存');
+    let ok = false;
+    try { await o.onSave(data, rid); ok = true; }
+    catch(e){ err.textContent = '儲存失敗：'+e.message+'\n（輸入內容已保留，可再按儲存）'; }
+    btn.disabled = false; btn.textContent = o.saveLabel||'儲存';
+    if (ok) { closeModal(); refresh('已儲存'); }
   };
   const row = el('div',{class:'row'}, btn, el('button',{class:'btn sec',onclick:closeModal},'取消'));
   if (o.onDelete) row.append(el('button',{class:'btn dan',onclick:async()=>{
@@ -233,144 +205,6 @@ function openForm(o){
   }},'刪除'));
   box.append(err, row);
   const m = $('#modal'); m.replaceChildren(box); m.style.display='block'; m.scrollTop = 0; document.body.style.overflow='hidden';
-}
-
-/* ---------- 相片 ---------- */
-function compressImage(file){
-  const MAX = 1280, Q = 0.75;
-  return new Promise(resolve => {
-    if (file.type === 'image/gif') return resolve(file);
-    const img = new Image(), url = URL.createObjectURL(file);
-    let done = false;
-    const finish = b => { if (done) return; done = true; URL.revokeObjectURL(url); resolve(b); };
-    img.onload = () => {
-      try {
-        let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-        if (!w || !h) return finish(file);
-        const s = Math.min(1, MAX / Math.max(w, h));
-        w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
-        const c = document.createElement('canvas'); c.width = w; c.height = h;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-        c.toBlob(b => finish(b || file), 'image/jpeg', Q);
-      } catch(e){ finish(file); }
-    };
-    img.onerror = () => finish(file);
-    img.src = url;
-  });
-}
-function blobToBase64(blob){
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result).split(',')[1] || '');
-    r.onerror = () => reject(new Error('讀取檔案失敗'));
-    r.readAsDataURL(blob);
-  });
-}
-async function uploadPhotoFile(file, projectId, logId){
-  const blob = await compressImage(file);
-  const mime = blob.type || file.type || 'image/jpeg';
-  const data = await blobToBase64(blob);
-  if (!data) throw new Error('無法讀取圖片');
-  return api('uploadPhoto', {
-    projectId, logId: logId || '',
-    filename: file.name || ('photo.' + (mime.split('/')[1] || 'jpg')),
-    mimeType: mime, data, requestId: crypto.randomUUID()
-  }, 120000);
-}
-async function uploadMany(files, projectId, logId, onProgress){
-  const CONC = 3, total = files.length;
-  const queue = files.slice();
-  let done = 0, ok = 0; const errs = [];
-  async function worker(){
-    while (queue.length) {
-      const f = queue.shift();
-      try { await uploadPhotoFile(f, projectId, logId); ok++; }
-      catch(e){ errs.push(e.message); }
-      done++;
-      if (onProgress) onProgress(done, total);
-    }
-  }
-  await Promise.all(Array.from({length: Math.min(CONC, total)}, worker));
-  return { ok, errs };
-}
-function photosOf(logId){
-  return S.photos.filter(p => p.LogID === logId && p.IsDeleted !== 'Y')
-    .sort((a,b) => (a.CreatedAt||'').localeCompare(b.CreatedAt||''));
-}
-function photoThumbs(list, canDelete){
-  const wrap = el('div',{class:'pgrid'});
-  list.forEach(p => {
-    const cell = el('div',{class:'pcell'});
-    const a = el('a',{href:p.Url,target:'_blank',rel:'noopener noreferrer',style:'display:block;width:100%;height:100%'});
-    const img = el('img',{
-      src:'https://drive.google.com/thumbnail?id='+encodeURIComponent(p.DriveFileID)+'&sz=w400',
-      loading:'lazy', alt:p.Caption||'相片'});
-    img.onerror = () => { img.style.opacity = '.35'; };
-    a.onclick = ev => ev.stopPropagation();
-    a.append(img); cell.append(a);
-    if (canDelete) {
-      const x = el('button',{class:'pdel',type:'button',title:'刪除相片'},'×');
-      x.onclick = async ev => {
-        ev.preventDefault(); ev.stopPropagation();
-        if (!confirm('刪除此相片？')) return;
-        try { await api('deletePhoto',{id:p.PhotoID}); await refresh('已刪除相片'); }
-        catch(e){ toast('刪除失敗：'+e.message,'err',6000); }
-      };
-      cell.append(x);
-    }
-    wrap.append(cell);
-  });
-  return wrap;
-}
-function photoPicker(){
-  const files = [], chips = el('div',{class:'pgrid'});
-  const input = el('input',{type:'file',accept:'image/*',multiple:''});
-  input.onchange = () => {
-    Array.from(input.files||[]).forEach(f => {
-      if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name)) return;
-      files.push(f);
-      const objUrl = URL.createObjectURL(f);
-      const cell = el('div',{class:'pcell'});
-      const img = el('img',{src:objUrl,alt:f.name});
-      const x = el('button',{class:'pdel',type:'button'},'×');
-      x.onclick = ev => {
-        ev.preventDefault(); ev.stopPropagation();
-        const i = files.indexOf(f); if (i >= 0) files.splice(i,1);
-        URL.revokeObjectURL(objUrl); cell.remove();
-      };
-      cell.append(img, x); chips.append(cell);
-    });
-    input.value = '';
-  };
-  const node = el('div',{}, el('label',{},'相片'), input,
-    el('div',{class:'mut'},'可選多張；自動壓縮至長邊 1280px，並發上傳'),
-    chips);
-  return {
-    node,
-    hasFiles: () => files.length > 0,
-    upload: async (pid, logId) => {
-      const r = await uploadMany(files, pid, logId, (d,t)=>{ if (d<t) toast('上傳相片中（'+d+'/'+t+'）…','info',0); });
-      files.length = 0;
-      if (r.errs.length) throw new Error(r.errs.length+' 張失敗（'+r.errs[0]+'）');
-      return r.ok;
-    }
-  };
-}
-function quickAddPhotos(l){
-  const input = el('input',{type:'file',accept:'image/*',multiple:''});
-  input.style.position = 'fixed'; input.style.left = '-9999px';
-  document.body.append(input);
-  input.onchange = async () => {
-    const files = Array.from(input.files||[]);
-    input.remove();
-    if (!files.length) return;
-    const r = await uploadMany(files, l.ProjectID, l.LogID, (d,t)=>{ toast('上傳相片中（'+d+'/'+t+'）…','info',0); });
-    await refresh(r.errs.length ? '' : '已上傳 '+r.ok+' 張相片');
-    if (r.errs.length) toast('已上傳 '+r.ok+' 張，'+r.errs.length+' 張失敗：'+r.errs[0],'err',8000);
-  };
-  input.click();
 }
 
 /* ---------- 工程 ---------- */
@@ -392,12 +226,11 @@ function projectCard(p){
   const n = S.logs.filter(l => l.ProjectID === p.ProjectID).length;
   const ci = S.checklist.filter(i => i.ProjectID === p.ProjectID);
   const cd = ci.filter(i => i.Done === 'Y').length;
-  const pn = S.photos.filter(x => x.ProjectID === p.ProjectID).length;
   return el('div',{class:'card click',onclick:()=>{S.view='project';S.projectId=p.ProjectID;render();}},
     el('div',{}, el('strong',{},p.Name)),
     el('div',{}, el('span',{class:'badge'},p.Status), p.PlannedEnd ? el('span',{class:'mut'},'預計完成 '+p.PlannedEnd) : null),
     el('div',{class:'mut'}, [p.Location,p.Contractor].filter(Boolean).join(' · ')),
-    el('div',{class:'mut'}, '紀錄 '+n+' 條'+(pn?' · 相片 '+pn+' 張':'')+(ci.length ? ' · 清單 '+cd+'/'+ci.length : '')));
+    el('div',{class:'mut'}, '紀錄 '+n+' 條'+(ci.length ? ' · 清單 '+cd+'/'+ci.length : '')));
 }
 function projectsView(){
   const wrap = el('div'), list = el('div');
@@ -464,11 +297,7 @@ function checklistSection(p){
       (groups[k] = groups[k] || []).push(i);
     });
     Object.keys(groups).sort().forEach(cat => {
-      const card = el('div',{class:'card'});
-      card.append(el('div',{style:'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap'},
-        el('strong',{},cat),
-        el('button',{class:'btn dan',style:'flex:none;min-height:40px;padding:4px 10px;font-size:13px',onclick:()=>delCategory(p.ProjectID, cat)},'刪除此類別')
-      ));
+      const card = el('div',{class:'card'}, el('strong',{},cat));
       groups[cat].sort((a,b) => a.ItemID.localeCompare(b.ItemID)).forEach(i => card.append(checkRow(i,today)));
       wrap.append(card);
     });
@@ -480,12 +309,10 @@ function checkRow(i, today){
   cb.onchange = () => toggleItem(i, cb);
   const overdue = i.Done !== 'Y' && i.DueDate && i.DueDate < today;
   const sub = [i.Owner, i.DueDate ? '期限 '+i.DueDate+(overdue ? '（已逾期）' : '') : '', i.Remarks].filter(Boolean).join(' · ');
-  const title = el('div',{style:'flex:1;min-width:0;'+(i.Done === 'Y' ? 'text-decoration:line-through;color:#6b7280' : '')},
+  const title = el('div',{style:'flex:1;cursor:pointer;'+(i.Done === 'Y' ? 'text-decoration:line-through;color:#6b7280' : ''), onclick:()=>editCheck(i)},
     i.Title, i.Required === 'Y' ? el('span',{class:'badge warn',style:'margin-left:6px'},'必須') : null,
     sub ? el('div',{class:'mut',style:overdue ? 'color:#b91c1c' : ''}, sub) : null);
-  const edit = el('button',{class:'btn sec',style:'flex:none;min-height:44px;min-width:44px;padding:6px 10px;font-size:14px',onclick:()=>editCheck(i)},'✎');
-  const del  = el('button',{class:'btn dan',style:'flex:none;min-height:44px;min-width:44px;padding:6px 10px;font-size:14px',onclick:()=>delCheck(i)},'刪');
-  return el('div',{style:'display:flex;align-items:flex-start;gap:6px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title, edit, del);
+  return el('div',{style:'display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title);
 }
 async function toggleItem(i, cb){
   const done = cb.checked; cb.disabled = true;
@@ -506,21 +333,6 @@ function editCheck(i){
     onSave:d=>api('update',{table:'Checklist',id:i.ItemID,data:d,expectedUpdatedAt:i.UpdatedAt}),
     onDelete:()=>api('delete',{table:'Checklist',id:i.ItemID})});
 }
-async function delCheck(i){
-  if (!confirm('刪除「'+i.Title+'」？\n（會標記為已刪除，可於 Google Sheets 將 IsDeleted 改回 N 還原）')) return;
-  try { await api('delete',{table:'Checklist',id:i.ItemID}); await refresh('已刪除'); }
-  catch(e){ toast('刪除失敗：'+e.message,'err',6000); }
-}
-async function delCategory(pid, cat){
-  const items = S.checklist.filter(i => i.ProjectID === pid && (i.Category || '未分類') === cat);
-  if (!items.length) return;
-  if (!confirm('刪除「'+cat+'」下全部 '+items.length+' 項？\n（會標記為已刪除，可於 Google Sheets 還原）')) return;
-  toast('刪除中…','info',0);
-  try {
-    for (const i of items) await api('delete',{table:'Checklist',id:i.ItemID});
-    await refresh('已刪除 '+items.length+' 項');
-  } catch(e){ toast('刪除失敗：'+e.message,'err',6000); }
-}
 async function seedCheck(p){
   if (!confirm('為「'+p.Name+'」套用預設清單（24 項，全部為非必須，之後可修改或刪除）？')) return;
   toast('建立中…','info',0);
@@ -533,28 +345,11 @@ async function seedCheck(p){
 /* ---------- Logbook ---------- */
 function newLog(pid){
   if (!S.projects.length) return toast('請先建立工程','err');
-  const picker = photoPicker();
-  openForm({
-    title:'新增工程紀錄', fields:LF,
-    values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'視察'},
-    extra: () => picker.node,
-    onSave:(d,rid)=>api('create',{table:'Logbook',data:d,requestId:rid}),
-    afterSave: async res => {
-      if (!picker.hasFiles()) return;
-      const rec = res && res.record;
-      if (!rec || !rec.LogID) throw new Error('找不到紀錄 ID');
-      await picker.upload(rec.ProjectID, rec.LogID);
-    }
-  });
+  openForm({title:'新增工程紀錄', fields:LF, values:{ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'},
+            onSave:(d,rid)=>api('create',{table:'Logbook',data:d,requestId:rid})});
 }
 function editLog(l){
-  const picker = photoPicker();
-  openForm({
-    title:'修改紀錄', fields:LF, values:l,
-    extra: () => picker.node,
-    onSave:d=>api('update',{table:'Logbook',id:l.LogID,data:d,expectedUpdatedAt:l.UpdatedAt}),
-    afterSave: async () => { if (picker.hasFiles()) await picker.upload(l.ProjectID, l.LogID); }
-  });
+  openForm({title:'修改紀錄', fields:LF, values:l, onSave:d=>api('update',{table:'Logbook',id:l.LogID,data:d,expectedUpdatedAt:l.UpdatedAt})});
 }
 function logCard(l, showProj){
   const proj = S.projects.find(p => p.ProjectID === l.ProjectID);
@@ -567,20 +362,11 @@ function logCard(l, showProj){
   (l.AttachmentLinks||'').split('\n').map(s => s.trim()).filter(Boolean).forEach(s => {
     det.append(/^https?:\/\//i.test(s) ? el('div',{}, el('a',{href:s,target:'_blank',rel:'noopener noreferrer'},s)) : el('div',{class:'mut'},s));
   });
-  const ph = photosOf(l.LogID);
-  if (ph.length) {
-    det.append(el('div',{class:'mut',style:'margin-top:8px'},'相片（'+ph.length+'）'));
-    det.append(photoThumbs(ph, true));
-  }
-  det.append(
-    el('div',{class:'row'},
-      el('button',{class:'btn sec',onclick:()=>quickAddPhotos(l)},'＋ 上傳相片'),
-      el('button',{class:'btn sec',onclick:()=>editLog(l)},'修改')),
-    el('div',{class:'mut'},'ID：'+l.LogID+' · 建立 '+l.CreatedAt.slice(0,16).replace('T',' ')+' · 修改 '+l.UpdatedAt.slice(0,16).replace('T',' ')));
+  det.append(el('div',{class:'mut'},'ID：'+l.LogID+' · 建立 '+l.CreatedAt.slice(0,16).replace('T',' ')+' · 修改 '+l.UpdatedAt.slice(0,16).replace('T',' ')),
+             el('div',{class:'row'}, el('button',{class:'btn sec',onclick:()=>editLog(l)},'修改')));
   return el('div',{class:'card click',onclick:()=>{det.style.display = det.style.display==='none'?'block':'none';}},
     el('div',{class:'mut'}, l.EventAt.replace('T',' ')),
-    el('div',{}, el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, el('strong',{},l.Title),
-      ph.length ? el('span',{class:'badge',style:'margin-left:6px'},'📷 '+ph.length) : null),
+    el('div',{}, el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, el('strong',{},l.Title)),
     showProj && proj ? el('div',{class:'mut'},proj.Name) : null, det);
 }
 function logbookView(){
@@ -608,13 +394,9 @@ function settingsView(){
   const out = el('div',{class:'mut'});
   return el('div',{},
     el('div',{class:'card'}, el('div',{},'後端版本：'+S.meta.version),
-      el('div',{},'工程 '+S.projects.length+' 項 · 紀錄 '+S.logs.length+' 條 · 檢查項目 '+S.checklist.length+' 項 · 相片 '+S.photos.length+' 張'), out),
+      el('div',{},'工程 '+S.projects.length+' 項 · 紀錄 '+S.logs.length+' 條 · 檢查項目 '+S.checklist.length+' 項'), out),
     el('div',{class:'row'},
-      el('button',{class:'btn sec',onclick:async()=>{
-        out.textContent='測試中…';
-        try { const r=await fetch(API_URL); const d=await r.json(); out.textContent='連線正常：'+d.version + (d.version==='V0.1c-2'?'（最新）':'（⚠ 後端未更新，請重新部署新版本）'); }
-        catch(e){ out.textContent='連線失敗：'+e.message; }
-      }},'測試連線'),
+      el('button',{class:'btn sec',onclick:async()=>{ out.textContent='測試中…'; try{ const r=await fetch(API_URL); const d=await r.json(); out.textContent='連線正常：'+d.version; }catch(e){ out.textContent='連線失敗：'+e.message; } }},'測試連線'),
       el('button',{class:'btn sec',onclick:()=>refresh('已重新載入')},'重新載入資料')),
     el('div',{class:'row'}, el('button',{class:'btn dan',onclick:()=>{clearPw();location.reload();}},'登出')));
 }
@@ -642,7 +424,7 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => { S.view 
 async function init(){
   if (!getPw()) return loginView('');
   $('#main').replaceChildren(el('p',{class:'mut'},'載入中…'));
-  try { applyBootstrap(await api('bootstrap')); render(); }
+  try { S.meta = await api('meta'); await loadData(); render(); }
   catch(e){
     if (/Unauthorized|Too many/.test(e.message)) { clearPw(); loginView(e.message==='Unauthorized'?'密碼不正確':'錯誤次數過多，請稍後再試'); }
     else $('#main').replaceChildren(el('div',{class:'card'}, el('div',{style:'color:#b91c1c'},'載入失敗：'+e.message),
@@ -650,6 +432,18 @@ async function init(){
   }
 }
 init();
+
+/* ---------- PWA ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW 註冊失敗', e)));
+}
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; $('#install').style.display = 'block'; });
+$('#install').onclick = async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $('#install').style.display = 'none'; };
+window.addEventListener('appinstalled', () => { $('#install').style.display = 'none'; });
+const syncOnline = () => { $('#offline').style.display = navigator.onLine ? 'none' : 'block'; };
+window.addEventListener('online', () => { syncOnline(); if (S.meta) refresh('已重新連線'); });
+window.addEventListener('offline', syncOnline); syncOnline();
 </script>
 </body>
 </html>
