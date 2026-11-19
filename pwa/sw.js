@@ -1,5 +1,5 @@
 // Service Worker：只快取 App 外殼；GAS API 一律走網絡，不快取
-const VERSION = 'v0.1c-3-pwa1';   // 更新 index.html 後請改此版本號
+const VERSION = 'v0.3.0-ui-refresh';   // 更新 index.html 後請改此版本號
 const CACHE = 'logbook-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.json',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];

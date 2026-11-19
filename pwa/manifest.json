@@ -1,18 +1,33 @@
 {
   "name": "School Works Logbook",
-  "short_name": "Logbook",
-  "description": "學校工程紀錄簿",
+  "short_name": "Work Logbook",
+  "description": "學校行政及工作紀錄系統",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "lang": "zh-HK",
-  "background_color": "#1e40af",
-  "theme_color": "#1e40af",
+  "background_color": "#f4f6fb",
+  "theme_color": "#0f2a5c",
   "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

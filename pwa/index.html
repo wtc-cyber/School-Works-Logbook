@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1e40af">
+<meta name="theme-color" content="#0f2a5c">
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="manifest" href="manifest.json">
@@ -15,78 +15,65 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>School Works Logbook</title>
 <style>
-:root{--pri:#1e40af;--bg:#f3f4f6;--bd:#e5e7eb;--mut:#6b7280;--err:#b91c1c;--ok:#15803d}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:var(--bg);color:#111827;padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
-header{background:var(--pri);color:#fff;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));font-weight:600;position:sticky;top:0;z-index:5;display:flex;align-items:center}
-#sync{margin-left:auto;font-size:12px;font-weight:400;opacity:.85}
-#install{display:none;margin-left:8px;background:#fff;color:var(--pri);border:0;border-radius:6px;padding:6px 12px;font-size:14px;font-weight:600;cursor:pointer}
-#offline{display:none;background:#92400e;color:#fff;text-align:center;font-size:13px;padding:4px}
-header small{font-weight:400;opacity:.8;margin-left:6px}
-main{max-width:720px;margin:0 auto;padding:12px}
-nav{position:fixed;bottom:0;left:0;right:0;padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid var(--bd);display:none;z-index:5}
-nav button{flex:1;padding:14px 4px;border:0;background:none;font-size:15px;color:var(--mut)}
-nav button.on{color:var(--pri);font-weight:700;border-top:3px solid var(--pri)}
-.card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:12px;margin:8px 0}
-.click{cursor:pointer}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
-.row>*{flex:1;min-width:120px}
-.mut{color:var(--mut);font-size:13px}
-.badge{display:inline-block;background:#dbeafe;color:#1e3a8a;border-radius:10px;padding:2px 8px;font-size:12px;margin-right:4px}
-.badge.warn{background:#fef3c7;color:#92400e}
-input,select,textarea,button{font:inherit}
-input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
-input[type=checkbox]{width:auto;transform:scale(1.4);margin:6px}
-textarea{min-height:90px}
-label{display:block;margin:12px 0 2px;font-size:14px;font-weight:600}
-.req{color:var(--err)}
-.btn{padding:11px 16px;border:0;border-radius:6px;background:var(--pri);color:#fff;min-height:44px;cursor:pointer}
-.btn.sec{background:#e5e7eb;color:#111827}
-.btn.dan{background:var(--err)}
-.btn:disabled{opacity:.5}
-#toast{position:fixed;left:12px;right:12px;bottom:84px;padding:12px;border-radius:8px;color:#fff;display:none;z-index:30}
-#toast.ok{background:var(--ok)}#toast.err{background:var(--err)}#toast.info{background:#374151}
-#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:20;overflow:auto}
-#modal .box{background:#fff;max-width:640px;margin:0 auto;min-height:100%;padding:16px}
-#formErr{color:var(--err);margin:10px 0;white-space:pre-wrap}
+:root{--navy:#0f2a5c;--navy2:#1b3f86;--bg:#f4f6fb;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--blue-bg:#e8eefb;--green:#15803d;--red:#b91c1c;--amber:#a16207;--radius:14px}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;max-width:100%;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang HK","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink)}body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}button,input,select,textarea{font:inherit}button,select,input{touch-action:manipulation}
+[hidden]{display:none!important}.app{display:flex;min-height:100vh}.side{position:fixed;inset:0 auto 0 0;width:244px;background:var(--navy);color:#fff;display:flex;flex-direction:column;padding:20px 14px;z-index:30}.brand{display:flex;align-items:center;gap:11px;padding:2px 8px 24px;font-size:18px;font-weight:800;letter-spacing:.2px}.brand-mark{width:38px;height:38px;border-radius:11px;background:#fff;color:var(--navy);display:grid;place-items:center;font-size:20px;font-weight:900}.nav-label{padding:8px 12px 6px;color:#9fb0d0;font-size:11px;font-weight:800;letter-spacing:1px}.side nav{display:flex;flex-direction:column;gap:5px}.side nav button{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 13px;border:0;border-radius:10px;background:none;color:#d2dced;text-align:left;font-weight:650;cursor:pointer}.side nav button:hover{background:#ffffff12}.side nav button.on{background:#ffffff20;color:#fff}.side nav button i{font-style:normal;width:22px;text-align:center;font-size:17px}.side-foot{margin-top:auto;padding:12px 10px;color:#9fb0d0;font-size:11px;line-height:1.6}.body{margin-left:244px;min-width:0;flex:1;display:flex;flex-direction:column;min-height:100vh}.top{height:auto;min-height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;position:sticky;top:0;z-index:15}.top-left{display:flex;align-items:center;gap:12px;min-width:0}.top-title{font-size:17px;font-weight:800;color:var(--navy)}.top-sub{font-size:12px;color:var(--muted);margin-left:8px}.top-right{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}#sync{white-space:nowrap}#install{display:none;background:var(--navy);color:white;border:0;border-radius:9px;padding:8px 13px;font-weight:700}.burger{display:none;width:42px;height:42px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--navy);font-size:20px}.main{width:100%;max-width:1440px;margin:0 auto;padding:24px;flex:1}.page{display:flex;flex-direction:column;gap:16px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}.page-head h1{margin:0;color:var(--navy);font-size:24px;line-height:1.3}.page-head p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.6}.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:17px;box-shadow:0 1px 3px #0f2a5c0d;margin:0}.card.click{cursor:pointer;transition:.15s}.card.click:hover{border-color:#aab9d6;box-shadow:0 4px 14px #0f2a5c12;transform:translateY(-1px)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:0 1px 3px #0f2a5c0d}.stat .k{font-size:12px;color:var(--muted);font-weight:700}.stat .v{font-size:30px;font-weight:850;color:var(--navy);line-height:1.25;margin:5px 0}.stat .s{font-size:11px;color:#9ca3af}.stat .ico{float:right;font-size:21px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 12px}.section-title h2,.section-title h3{margin:0;color:var(--navy);font-size:16px}.mut,.muted{color:var(--muted);font-size:13px}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:8px 0}.row>*{min-width:0;flex:1}.btn{min-height:43px;padding:9px 16px;border:0;border-radius:10px;background:var(--navy);color:#fff;font-weight:800;cursor:pointer}.btn:hover{background:var(--navy2)}.btn.sec{background:#fff;color:var(--ink);border:1px solid #cbd5e1}.btn.sec:hover{background:#f8fafc}.btn.dan{background:var(--red)}.btn:disabled{opacity:.5;cursor:wait}.link{border:0;background:none;color:var(--navy2);text-decoration:underline;cursor:pointer}.badge{display:inline-flex;align-items:center;background:#e8eefb;color:#1b3f86;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:750;margin:0 5px 4px 0}.badge.warn{background:#fef3c7;color:#92400e}.badge.good{background:#dcfce7;color:#166534}.badge.gray{background:#f3f4f6;color:#4b5563}
+input,select,textarea{width:100%;min-height:42px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:var(--ink);outline:none}textarea{min-height:100px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:var(--navy2);box-shadow:0 0 0 3px #1b3f861c}input[type=checkbox]{width:auto;min-height:0;transform:scale(1.15);margin:5px 8px 5px 2px}label{display:block;margin:13px 0 5px;font-size:13px;font-weight:750;color:#374151}.req{color:var(--red)}.form-section{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:12px 0;background:#fbfcff}.form-section h4{margin:0 0 5px;color:var(--navy);font-size:14px}.form-section .section-help{font-size:11px;color:var(--muted);margin-bottom:8px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.form-grid .wide{grid-column:1/-1}
+#offline{display:none;background:#92400e;color:#fff;text-align:center;padding:5px;font-size:12px}.modal{position:fixed;inset:0;background:#0b1737a8;display:none;z-index:50;overflow:auto;padding:24px;align-items:center;justify-content:center}.modal .box{background:#fff;width:min(780px,100%);max-height:92vh;overflow:auto;border-radius:16px;padding:24px;box-shadow:0 20px 60px #07142f55}.modal h2{margin:0;color:var(--navy);font-size:21px}.modal .form-intro{color:var(--muted);font-size:12px;margin:5px 0 14px}.modal .row{justify-content:flex-end}.modal .row>*{flex:0 0 auto;min-width:110px}#formErr{color:var(--red);margin:10px 0;white-space:pre-wrap;font-size:13px}.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;max-width:min(560px,calc(100% - 24px));padding:12px 18px;border-radius:11px;color:#fff;display:none;z-index:80;box-shadow:0 5px 20px #0002}.toast.ok{background:#15803d}.toast.err{background:#b91c1c}.toast.info{background:#334155}
+.project-card{display:flex;flex-direction:column;gap:10px}.project-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.project-name{font-size:16px;font-weight:800;color:var(--navy);line-height:1.4}.project-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}.progress{height:7px;border-radius:999px;background:#edf0f5;overflow:hidden}.progress>i{display:block;height:100%;background:#1b3f86;border-radius:999px}.category-tile{border:1px solid var(--line);border-radius:13px;background:#fff;padding:15px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left;min-height:78px}.category-tile:hover{border-color:#9eafd0;background:#fbfcff}.category-icon{width:42px;height:42px;border-radius:12px;background:#e8eefb;display:grid;place-items:center;font-size:20px;flex:none}.category-tile b{display:block;color:var(--navy);font-size:15px}.category-tile small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.filterbar{display:grid;grid-template-columns:minmax(220px,1fr) repeat(3,minmax(140px,190px));gap:9px;background:#fff;padding:13px;border:1px solid var(--line);border-radius:13px}.list{display:flex;flex-direction:column;gap:10px}.log-card{border:1px solid var(--line);background:#fff;border-radius:13px;padding:14px 16px;cursor:pointer}.log-card:hover{border-color:#b5c2d8}.log-title{font-weight:800;color:var(--navy);margin:5px 0}.log-meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}.check-row{display:flex;align-items:flex-start;gap:8px;padding:10px 2px;border-top:1px solid #eef0f4}.check-row .check-title{flex:1;cursor:pointer}.empty{padding:28px 14px;text-align:center;color:var(--muted);background:#fff;border:1px dashed #cbd5e1;border-radius:13px}.overlay{display:none}
+@media(max-width:1000px){.side{width:270px;max-width:84vw;transform:translateX(-105%);transition:transform .2s;z-index:65;box-shadow:none}.side.open{transform:translateX(0);box-shadow:8px 0 25px #0003}.overlay.show{display:block;position:fixed;inset:0;background:#0f2a5c70;z-index:60}.body{margin-left:0}.burger{display:inline-grid;place-items:center}.top{padding:9px 14px}.main{padding:16px}}
+@media(max-width:680px){.main{padding:12px}.top-sub{display:none}.top-title{font-size:15px}.page-head h1{font-size:21px}.page-head{align-items:stretch}.head-actions{width:100%}.head-actions .btn{flex:1}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{padding:12px}.stat .v{font-size:25px}.grid{grid-template-columns:1fr}.filterbar{grid-template-columns:1fr 1fr}.filterbar .search{grid-column:1/-1}.form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}.modal{padding:0;align-items:stretch}.modal .box{width:100%;max-height:100dvh;height:100dvh;border-radius:0;padding:17px;padding-bottom:calc(18px + env(safe-area-inset-bottom))}.modal .row .btn{flex:1}.top-right{gap:6px}#sync{max-width:100px;overflow:hidden;text-overflow:ellipsis}.row>*{flex:1 1 100%}}
 </style>
 </head>
 <body>
-<header>School Works Logbook<small>V0.2.0</small><span id="sync"></span><button id="install" type="button">安裝</button></header>
-<div id="offline">目前離線，無法同步資料</div>
-<main id="main"></main>
-<nav id="nav">
-  <button data-v="projects">總務／工程</button>
-  <button data-v="logbook">工作紀錄</button>
-  <button data-v="settings">設定</button>
-</nav>
-<div id="toast"></div>
-<div id="modal"></div>
-
+<div class="app">
+  <aside class="side" id="side">
+    <div class="brand"><span class="brand-mark">L</span><span>School Works<br><small style="font-size:11px;font-weight:500;color:#b9c7df">工作紀錄系統</small></span></div>
+    <div class="nav-label">工作管理</div>
+    <nav id="nav">
+      <button data-v="dashboard"><i>▦</i>總覽</button>
+      <button data-v="projects"><i>▣</i>總務／工程</button>
+      <button data-v="logbook"><i>☷</i>工作紀錄</button>
+    </nav>
+    <div class="nav-label" style="margin-top:14px">系統</div>
+    <nav><button data-v="settings"><i>⚙</i>設定</button></nav>
+    <div class="side-foot">School Works Logbook<br>離線可查看已同步資料</div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+  <section class="body">
+    <header class="top"><div class="top-left"><button class="burger" id="burger" type="button">☰</button><div><b class="top-title" id="topTitle">總覽</b><span class="top-sub">學校行政及工作紀錄</span></div></div><div class="top-right"><span id="sync"></span><button id="install" type="button">安裝</button></div></header>
+    <div id="offline">目前離線，無法同步資料</div>
+    <main id="main" class="main"></main>
+  </section>
+</div>
+<div id="toast" class="toast"></div>
+<div id="modal" class="modal"></div>
 <script>
 // ★ 填入 GAS /exec 網址（與之前相同即可）
 const API_URL = 'https://script.google.com/macros/s/AKfycby05A2qYvYOsqPfFDDarLreBsoBtskympLc9tjwaF2LbH9as0SwC10KEzVoAt8j5BkX2w/exec';
 
 const $ = s => document.querySelector(s);
-const S = { view:'projects', projectId:null, meta:null, projects:[], logs:[], checklist:[], photos:[], onlyOpen:false,
+const S = { view:'dashboard', projectId:null, meta:null, projects:[], logs:[], checklist:[], photos:[], onlyOpen:false,
             logsBy:{}, chkBy:{}, pk:new Map(), lk:new Map(),
             pf:{q:'',status:''}, lf:{q:'',type:'',project:'',category:''} };
 const PAGE = 40;
+const VIEW_TITLE = {dashboard:'總覽',projects:'總務／工程',project:'工程詳情',logbook:'工作紀錄',settings:'設定'};
 
 /* ---------- 欄位定義（前端表單用；驗證以後端為準）---------- */
 const PF = [
- {n:'Name',l:'工程名稱',t:'text',req:1},
- {n:'Status',l:'工程狀態',t:'select',en:'ProjectStatus',req:1,def:'尚未開始'},
- {n:'Location',l:'工程地點',t:'text'},
- {n:'Category',l:'工程類別',t:'text'},
- {n:'Scope',l:'工程範圍',t:'area'},
- {n:'Contractor',l:'承辦商',t:'text'},
- {n:'Owner',l:'工程負責人',t:'text'},
- {n:'StartDate',l:'開始日期',t:'date'},
- {n:'PlannedEnd',l:'預計完成日期',t:'date'},
- {n:'ActualEnd',l:'實際完成日期',t:'date'},
- {n:'Budget',l:'預算（選填）',t:'number'},
- {n:'Remarks',l:'備註',t:'area'}];
+ {n:'Name',l:'工程名稱',t:'text',req:1,g:'基本資料',wide:1},
+ {n:'Category',l:'工程類別',t:'text',g:'基本資料'},
+ {n:'Location',l:'工程地點／位置',t:'text',g:'基本資料'},
+ {n:'Scope',l:'工程範圍及工作內容',t:'area',g:'基本資料',wide:1},
+ {n:'Status',l:'工程狀態',t:'select',en:'ProjectStatus',req:1,def:'尚未開始',g:'負責及進度'},
+ {n:'Contractor',l:'承辦商／供應商',t:'text',g:'負責及進度'},
+ {n:'Owner',l:'校內負責人',t:'text',g:'負責及進度'},
+ {n:'StartDate',l:'開始日期',t:'date',g:'時間及預算'},
+ {n:'PlannedEnd',l:'預計完成日期',t:'date',g:'時間及預算'},
+ {n:'ActualEnd',l:'實際完成日期',t:'date',g:'時間及預算'},
+ {n:'Budget',l:'預算（HK$）',t:'number',g:'時間及預算'},
+ {n:'Remarks',l:'備註／特別安排',t:'area',g:'補充資料',wide:1}];
 const WORK_CATEGORIES = ['總務','PE','班主任','其他'];
 const LF = [
  {n:'WorkCategory',l:'工作範疇',t:'select',list:WORK_CATEGORIES,req:1,def:'總務'},
@@ -128,7 +115,7 @@ function nowLocal(){
 function toast(msg, cls, ms){
   const t = $('#toast'); clearTimeout(toast.t);
   if (!msg) { t.style.display = 'none'; return; }
-  t.textContent = msg; t.className = cls || 'info'; t.style.display = 'block';
+  t.textContent = msg; t.className = 'toast ' + (cls || 'info'); t.style.display = 'block';
   if (ms !== 0) toast.t = setTimeout(() => t.style.display = 'none', ms || 2500);
 }
 const getPw = () => sessionStorage.getItem('pw') || localStorage.getItem('pw') || '';
@@ -280,8 +267,14 @@ async function mut(action, table, payload){
 function closeModal(){ const m=$('#modal'); m.style.display='none'; m.replaceChildren(); document.body.style.overflow=''; }
 function openForm(o){
   const rid = crypto.randomUUID(), inp = {}, err = el('div',{id:'formErr'});
-  const box = el('div',{class:'box'}, el('h3',{},o.title));
+  const box = el('div',{class:'box'}, el('h2',{},o.title), el('div',{class:'form-intro'},o.intro || '請填寫以下資料，完成後按儲存。'));
+  let activeGroup = null, groupEl = null, gridEl = null;
   o.fields.forEach(f => {
+    const group = f.g || '紀錄資料';
+    if (group !== activeGroup) {
+      activeGroup = group; groupEl = el('section',{class:'form-section'},el('h4',{},group));
+      gridEl = el('div',{class:'form-grid'}); groupEl.append(gridEl); box.append(groupEl);
+    }
     const raw = o.values && o.values[f.n]; const val = (raw != null && raw !== '') ? raw : (f.def || '');
     let c;
     if (f.t === 'area') c = el('textarea');
@@ -302,7 +295,8 @@ function openForm(o){
     }
     if (f.t === 'check') c.checked = (val === 'Y'); else c.value = val;
     inp[f.n] = c;
-    box.append(el('label',{}, f.l, f.req ? el('span',{class:'req'},' *') : null), c);
+    const fieldWrap = el('div',{class:f.wide?'wide':''}, el('label',{}, f.l, f.req ? el('span',{class:'req'},' *') : null), c);
+    gridEl.append(fieldWrap);
   });
   const btn = el('button',{class:'btn'}, o.saveLabel||'儲存');
   btn.onclick = async () => {
@@ -324,7 +318,7 @@ function openForm(o){
     catch(e){ err.textContent = '刪除失敗：'+e.message; }
   }},'刪除'));
   box.append(err, row);
-  const m = $('#modal'); m.replaceChildren(box); m.style.display='block'; m.scrollTop = 0; document.body.style.overflow='hidden';
+  const m = $('#modal'); m.replaceChildren(box); m.style.display='flex'; m.scrollTop = 0; document.body.style.overflow='hidden';
 }
 
 /* ---------- 工程 ---------- */
@@ -346,34 +340,39 @@ function projectCard(p){
   const n = (S.logsBy[p.ProjectID] || []).length;
   const ci = S.chkBy[p.ProjectID] || [];
   const cd = ci.filter(i => i.Done === 'Y').length;
-  return el('div',{class:'card click',onclick:()=>{S.view='project';S.projectId=p.ProjectID;render();}},
-    el('div',{}, el('strong',{},p.Name)),
-    el('div',{}, el('span',{class:'badge'},p.Status), p.PlannedEnd ? el('span',{class:'mut'},'預計完成 '+p.PlannedEnd) : null),
-    el('div',{class:'mut'}, [p.Location,p.Contractor].filter(Boolean).join(' · ')),
-    el('div',{class:'mut'}, '紀錄 '+n+' 條'+(ci.length ? ' · 清單 '+cd+'/'+ci.length : '')));
+  const pct = ci.length ? Math.round(cd/ci.length*100) : 0;
+  return el('div',{class:'card click project-card',onclick:()=>{S.view='project';S.projectId=p.ProjectID;render();}},
+    el('div',{class:'project-top'},el('div',{class:'project-name'},p.Name),el('span',{class:'badge'},p.Status)),
+    el('div',{class:'project-meta'},[p.Location,p.Category,p.Contractor].filter(Boolean).map(x=>el('span',{},x))),
+    ci.length ? el('div',{},el('div',{class:'project-meta',style:'justify-content:space-between;margin-bottom:5px'},el('span',{},'檢查清單進度'),el('b',{},cd+'/'+ci.length+'（'+pct+'%）')),el('div',{class:'progress'},el('i',{style:'width:'+pct+'%'}))) : null,
+    el('div',{class:'project-meta'},el('span',{},'工作紀錄 '+n+' 條'),el('span',{},p.PlannedEnd?'預計完成 '+p.PlannedEnd:'未設定完成日期')));
 }
 function projectsView(){
-  const wrap = el('div'), list = el('div');
+  const wrap = el('div',{class:'page'}), list = el('div',{class:'grid'});
   const q = el('input',{type:'search',placeholder:'搜尋工程名稱、地點、承辦商…'}); q.value = S.pf.q;
-  const st = el('select',{}, el('option',{value:''},'全部狀態'), S.meta.enums.ProjectStatus.map(s => el('option',{value:s},s)));
-  st.value = S.pf.status;
-  function draw(){
-    const k = S.pf.q.trim().toLowerCase();
-    const rows = S.projects.filter(p => (!S.pf.status || p.Status===S.pf.status) &&
-      (!k || S.pk.get(p.ProjectID).includes(k)));
-    paged(list, rows, projectCard, '沒有符合的工程');
-  }
-  let tm;
-  q.oninput = () => { S.pf.q = q.value; clearTimeout(tm); tm = setTimeout(draw,150); };
-  st.onchange = () => { S.pf.status = st.value; draw(); };
-  wrap.append(el('div',{class:'row'}, el('button',{class:'btn',onclick:newProject},'＋ 新增工程')),
-              el('div',{class:'row'}, q, st), list);
+  const st = el('select',{}, el('option',{value:''},'全部狀態'), S.meta.enums.ProjectStatus.map(x => el('option',{value:x},x))); st.value = S.pf.status;
+  function draw(){ const k=S.pf.q.trim().toLowerCase(); const rows=S.projects.filter(p=>(!S.pf.status||p.Status===S.pf.status)&&(!k||S.pk.get(p.ProjectID).includes(k))); paged(list,rows,projectCard,'沒有符合的工程'); }
+  let tm; q.oninput=()=>{S.pf.q=q.value;clearTimeout(tm);tm=setTimeout(draw,150)}; st.onchange=()=>{S.pf.status=st.value;draw()};
+  wrap.append(el('div',{class:'page-head'},el('div',{},el('h1',{},'總務及工程管理'),el('p',{},'集中管理校舍維修、採購、設施及工程項目。')),el('div',{class:'head-actions'},el('button',{class:'btn',onclick:newProject},'＋ 新增工程'))),
+    el('div',{class:'stats'},statCard('工程總數',S.projects.length,'項','▣'),statCard('進行中',S.projects.filter(p=>['施工中','前期準備','執漏中','待驗收'].includes(p.Status)).length,'項','◷'),statCard('待處理',S.projects.filter(p=>['等待校方處理','等待承辦商處理','尚未開始'].includes(p.Status)).length,'項','!')),
+    el('div',{class:'filterbar'},el('div',{class:'search'},q),st),list);
   draw(); return wrap;
+}
+function statCard(k,v,unit,ico){return el('div',{class:'stat'},el('span',{class:'ico'},ico),el('div',{class:'k'},k),el('div',{class:'v'},String(v)),el('div',{class:'s'},unit));}
+function dashboardView(){
+  const cats=WORK_CATEGORIES.map((c,i)=>({name:c,icon:['🏫','🏃','👥','📋'][i],desc:['校舍、設施、維修、採購及工程','體育課、校隊、比賽、器材及場地','學生關顧、家長聯絡、班務及出缺席','會議、活動、行政及其他職務'][i],count:S.logs.filter(l=>(l.WorkCategory||'總務')===c).length}));
+  const recent=S.logs.slice(0,6), list=el('div',{class:'list'}); recent.forEach(l=>list.append(logCard(l,true)));
+  const wrap=el('div',{class:'page'});
+  wrap.append(el('div',{class:'page-head'},el('div',{},el('h1',{},'工作總覽'),el('p',{},'學校日常工作及行政事項，一站式記錄與追蹤。')),el('div',{class:'head-actions'},el('button',{class:'btn',onclick:()=>newLog('')},'＋ 新增工作紀錄'))),
+    el('div',{class:'stats'},statCard('工程項目',S.projects.length,'個','▣'),statCard('工作紀錄',S.logs.length,'條','☷'),statCard('需要跟進',S.logs.filter(l=>l.NeedFollowUp==='Y').length,'項','◷'),statCard('待完成清單',S.checklist.filter(i=>i.Done!=='Y').length,'項','✓')),
+    el('section',{class:'card'},el('div',{class:'section-title'},el('h2',{},'工作範疇'),el('span',{class:'mut'},'選擇範疇快速新增')),el('div',{class:'grid'},cats.map(c=>el('button',{class:'category-tile',onclick:()=>newLog('',c.name)},el('span',{class:'category-icon'},c.icon),el('span',{},el('b',{},c.name),el('small',{},c.desc+' · '+c.count+' 條紀錄')))))),
+    el('section',{},el('div',{class:'section-title'},el('h2',{},'最近工作紀錄'),el('button',{class:'link',onclick:()=>{S.view='logbook';render()}},'查看全部')),list.children.length?list:el('div',{class:'empty'},'尚未有工作紀錄')));
+  return wrap;
 }
 function projectView(){
   const p = S.projects.find(x => x.ProjectID === S.projectId);
   if (!p) { S.view='projects'; return projectsView(); }
-  const info = el('div',{class:'card'}, el('h3',{style:'margin:0 0 8px'},p.Name));
+  const info = el('div',{class:'card'}, el('div',{class:'section-title'},el('h2',{},p.Name),el('span',{class:'badge'},p.Status)));
   PF.forEach(f => {
     if (f.n === 'Name' || !p[f.n]) return;
     const v = f.n==='Budget' ? 'HK$ '+Number(p[f.n]).toLocaleString() : p[f.n];
@@ -384,9 +383,9 @@ function projectView(){
   const logList = el('div');
   paged(logList, logs, l => logCard(l,false), '暫時沒有紀錄');
   return el('div',{},
-    el('button',{class:'btn sec',onclick:()=>{S.view='projects';render();}},'← 返回'),
+    el('button',{class:'btn sec',onclick:()=>{S.view='projects';render();}},'← 返回工程列表'),
     info,
-    el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>editProject(p)},'修改'),
+    el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>editProject(p)},'修改工程資料'),
                             el('button',{class:'btn dan',onclick:()=>delProject(p)},'刪除')),
     checklistSection(p),
     el('h3',{},'相關工作紀錄（'+logs.length+'）'),
@@ -434,7 +433,7 @@ function checkRow(i, today){
   const title = el('div',{style:'flex:1;cursor:pointer;'+(i.Done === 'Y' ? 'text-decoration:line-through;color:#6b7280' : ''), onclick:()=>editCheck(i)},
     i.Title, i.Required === 'Y' ? el('span',{class:'badge warn',style:'margin-left:6px'},'必須') : null,
     sub ? el('div',{class:'mut',style:overdue ? 'color:#b91c1c' : ''}, sub) : null);
-  return el('div',{style:'display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid #f0f0f0'}, cb, title);
+  return el('div',{class:'check-row'}, cb, title);
 }
 async function toggleItem(i, cb){
   const done = cb.checked; cb.disabled = true;
@@ -463,10 +462,12 @@ async function seedCheck(p){
 }
 
 /* ---------- Logbook ---------- */
-function newLog(pid){
-  if (!S.projects.length) return toast('請先建立工程','err');
-  openForm({title:'新增工程紀錄', fields:LF, values:{WorkCategory:'總務',ProjectID:pid||'',EventAt:nowLocal(),Type:'工程巡視'},
-            onSave:(d,rid)=>mut('create','Logbook',{data:d,requestId:rid})});
+function newLog(pid, category){
+  const cat=category||'總務';
+  const fields=LF.filter(f=>f.n!=='ProjectID'||cat==='總務');
+  const typeDefaults={'總務':'工程巡視','PE':'體育課','班主任':'學生跟進','其他':'行政工作'};
+  openForm({title:'新增'+cat+'工作紀錄',intro:'選擇工作範疇並記錄工作內容；完成後可在工作紀錄頁搜尋及追蹤。',fields,values:{WorkCategory:cat,ProjectID:pid||'',EventAt:nowLocal(),Type:typeDefaults[cat]},
+    onSave:(d,rid)=>mut('create','Logbook',{data:Object.assign({ProjectID:''},d),requestId:rid})});
 }
 function editLog(l){
   openForm({title:'修改紀錄', fields:LF, values:l, onSave:d=>mut('update','Logbook',{id:l.LogID,data:d,expectedUpdatedAt:l.UpdatedAt})});
@@ -489,13 +490,12 @@ function logCard(l, showProj){
   const category = l.WorkCategory || '總務';
   const proj = showProj ? D.Projects.get(l.ProjectID) : null;
   let det = null;   // 詳情等到撳開先至建立，列表好多條時快好多
-  const card = el('div',{class:'card click',onclick:()=>{
+  const card = el('div',{class:'log-card',onclick:()=>{
     if (!det) { det = logDetail(l); card.append(det); }
     else det.style.display = det.style.display === 'none' ? 'block' : 'none';
   }},
-    el('div',{class:'mut'}, l.EventAt.replace('T',' ')),
-    el('div',{}, el('span',{class:'badge'},category), el('span',{class:'badge'},l.Type), l.NeedFollowUp==='Y' ? el('span',{class:'badge warn'},'需跟進') : null, el('strong',{},l.Title)),
-    proj ? el('div',{class:'mut'},proj.Name) : null);
+    el('div',{class:'log-meta'},el('span',{},l.EventAt.replace('T',' ')),el('span',{class:'badge'},category),el('span',{class:'badge gray'},l.Type),l.NeedFollowUp==='Y'?el('span',{class:'badge warn'},'需跟進'):null),
+    el('div',{class:'log-title'},l.Title),proj?el('div',{class:'mut'},proj.Name):null);
   return card;
 }
 // 分頁顯示：一次最多畫 PAGE 項，其餘按「顯示更多」
@@ -509,30 +509,17 @@ function paged(list, rows, mk, empty){
   })();
 }
 function logbookView(){
-  const wrap = el('div'), list = el('div');
-  const q = el('input',{type:'search',placeholder:'搜尋標題、內容、人士…'}); q.value = S.lf.q;
-  const ty = el('select',{}, el('option',{value:''},'全部類別'), S.meta.enums.LogType.map(s => el('option',{value:s},s))); ty.value = S.lf.type;
-  const pr = el('select',{}, el('option',{value:''},'全部工程'), S.projects.map(p => el('option',{value:p.ProjectID},p.Name))); pr.value = S.lf.project;
-  const cat = el('select',{}, el('option',{value:''},'全部工作範疇'), WORK_CATEGORIES.map(x => el('option',{value:x},x))); cat.value = S.lf.category;
-  function draw(){
-    const k = S.lf.q.trim().toLowerCase();
-    const rows = S.logs.filter(l => (!S.lf.category || (l.WorkCategory || '總務')===S.lf.category) &&
-      (!S.lf.type || l.Type===S.lf.type) && (!S.lf.project || l.ProjectID===S.lf.project) &&
-      (!k || S.lk.get(l.LogID).includes(k)));
-    paged(list, rows, l => logCard(l,true), '沒有符合的紀錄');
-  }
-  let tm;
-  q.oninput = () => { S.lf.q = q.value; clearTimeout(tm); tm = setTimeout(draw,150); };
-  ty.onchange = () => { S.lf.type = ty.value; draw(); };
-  pr.onchange = () => { S.lf.project = pr.value; draw(); };
-  cat.onchange = () => { S.lf.category = cat.value; draw(); };
-  const counts = WORK_CATEGORIES.map(c => [c,S.logs.filter(l => (l.WorkCategory || '總務')===c).length]);
-  const summary = el('div',{class:'row'}, counts.map(([c,n]) => el('div',{class:'card',style:'min-width:110px;text-align:center'},el('strong',{},String(n)),el('div',{class:'mut'},c))));
-  wrap.append(summary, el('div',{class:'row'}, el('button',{class:'btn',onclick:()=>newLog('')},'＋ 新增工作紀錄')),
-              el('div',{class:'row'}, q), el('div',{class:'row'}, cat, ty), el('div',{class:'row'}, pr), list);
-  draw(); return wrap;
+  const wrap=el('div',{class:'page'}), list=el('div',{class:'list'});
+  const q=el('input',{type:'search',placeholder:'搜尋標題、內容、相關人士…'});q.value=S.lf.q;
+  const ty=el('select',{},el('option',{value:''},'全部紀錄類別'),S.meta.enums.LogType.map(x=>el('option',{value:x},x)));ty.value=S.lf.type;
+  const pr=el('select',{},el('option',{value:''},'全部工程'),S.projects.map(p=>el('option',{value:p.ProjectID},p.Name)));pr.value=S.lf.project;
+  const cat=el('select',{},el('option',{value:''},'全部工作範疇'),WORK_CATEGORIES.map(x=>el('option',{value:x},x)));cat.value=S.lf.category;
+  function draw(){const k=S.lf.q.trim().toLowerCase();const rows=S.logs.filter(l=>(!S.lf.category||(l.WorkCategory||'總務')===S.lf.category)&&(!S.lf.type||l.Type===S.lf.type)&&(!S.lf.project||l.ProjectID===S.lf.project)&&(!k||S.lk.get(l.LogID).includes(k)));paged(list,rows,l=>logCard(l,true),'沒有符合的工作紀錄');}
+  let tm;q.oninput=()=>{S.lf.q=q.value;clearTimeout(tm);tm=setTimeout(draw,150)};ty.onchange=()=>{S.lf.type=ty.value;draw()};pr.onchange=()=>{S.lf.project=pr.value;draw()};cat.onchange=()=>{S.lf.category=cat.value;draw()};
+  const cats=WORK_CATEGORIES.map((c,i)=>el('button',{class:'category-tile',onclick:()=>newLog('',c)},el('span',{class:'category-icon'},['🏫','🏃','👥','📋'][i]),el('span',{},el('b',{},'新增'+c+'紀錄'),el('small',{},'快速建立工作紀錄'))));
+  wrap.append(el('div',{class:'page-head'},el('div',{},el('h1',{},'工作紀錄'),el('p',{},'按工作範疇分類，記錄工作過程、處理結果及後續事項。')),el('div',{class:'head-actions'},el('button',{class:'btn',onclick:()=>newLog('')},'＋ 新增工作紀錄'))),el('div',{class:'grid'},cats),el('div',{class:'filterbar'},el('div',{class:'search'},q),cat,ty,pr),list);
+  draw();return wrap;
 }
-
 /* ---------- 設定 ---------- */
 function settingsView(){
   const out = el('div',{class:'mut'});
@@ -547,7 +534,8 @@ function settingsView(){
 
 /* ---------- 登入及啟動 ---------- */
 function loginView(msg){
-  $('#nav').style.display = 'none';
+  $('#side').style.display = 'none';
+  $('.body').style.marginLeft = '0';
   const pw = el('input',{type:'password',placeholder:'密碼',autocomplete:'current-password'});
   const rem = el('input',{type:'checkbox'});
   const go = () => { (rem.checked ? localStorage : sessionStorage).setItem('pw', pw.value); init(); };
@@ -558,12 +546,16 @@ function loginView(msg){
     el('div',{class:'row'}, el('button',{class:'btn',onclick:go},'登入'))));
 }
 function render(){
-  $('#nav').style.display = 'flex';
-  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === (S.view==='project'?'projects':S.view)));
-  const v = S.view==='project' ? projectView() : S.view==='logbook' ? logbookView() : S.view==='settings' ? settingsView() : projectsView();
+  $('#side').style.display='flex';
+  $('.body').style.marginLeft = window.matchMedia('(max-width: 1000px)').matches ? '0' : '244px';
+  document.querySelectorAll('#side nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===(S.view==='project'?'projects':S.view)));
+  $('#topTitle').textContent=VIEW_TITLE[S.view]||'工作紀錄';
+  const v=S.view==='dashboard'?dashboardView():S.view==='project'?projectView():S.view==='logbook'?logbookView():S.view==='settings'?settingsView():projectsView();
   $('#main').replaceChildren(v);
 }
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => { S.view = b.dataset.v; S.projectId = null; render(); });
+document.querySelectorAll('#side nav button').forEach(b=>b.onclick=()=>{S.view=b.dataset.v;S.projectId=null;$('#side').classList.remove('open');$('#overlay').classList.remove('show');render();});
+$('#burger').onclick=()=>{$('#side').classList.toggle('open');$('#overlay').classList.toggle('show');};
+$('#overlay').onclick=()=>{$('#side').classList.remove('open');$('#overlay').classList.remove('show');};
 
 async function init(){
   if (!getPw()) return loginView('');
